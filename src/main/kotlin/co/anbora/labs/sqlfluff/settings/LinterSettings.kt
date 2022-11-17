@@ -1,5 +1,8 @@
 package co.anbora.labs.sqlfluff.settings
 
+import co.anbora.labs.sqlfluff.settings.Settings.OPTION_KEY_PYTHON
+import co.anbora.labs.sqlfluff.settings.Settings.OPTION_KEY_SQLLINT
+import co.anbora.labs.sqlfluff.settings.Settings.OPTION_KEY_SQLLINT_ARGUMENTS
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.ui.TextComponentAccessors
@@ -12,33 +15,25 @@ import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.SwingHelper
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
+import java.util.Objects
 import java.util.function.Supplier
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JTextField
 import javax.swing.event.DocumentEvent
-import javax.swing.event.DocumentListener
 import javax.swing.plaf.basic.BasicComboBoxEditor
-
 
 class LinterSettings: Configurable {
 
-    val OPTION_KEY_PYTHON = "python"
-    val OPTION_KEY_SQLLINT = "sqlFluffLint"
-    val OPTION_KEY_SQLLINT_OPTIONS = "sqlLintOptions"
-
-    private var modified = false
-
-    private lateinit var jTextSqlLintOptions: JTextField
-
     private lateinit var pythonPathField: TextFieldWithHistoryWithBrowseButton
     private lateinit var linterPathField: TextFieldWithHistoryWithBrowseButton
+    private lateinit var argumentsField: JTextField
+
+    private val globalConfigView = GlobalConfigView()
 
     private lateinit var rdDisableLint: JBRadioButton
     private lateinit var rdUseGlobalLinter: JBRadioButton
     private lateinit var rdUseManualLinter: JBRadioButton
-
-    private val listener = OptionModifiedListener(this)
 
     init {
         createUI()
@@ -68,6 +63,8 @@ class LinterSettings: Configurable {
         setupTextFieldDefaultValue(linterPathField.childComponent.textEditor) {
             Settings[OPTION_KEY_SQLLINT]
         }
+
+        argumentsField = JTextField()
     }
 
     private fun setupTextFieldDefaultValue(
@@ -94,14 +91,7 @@ class LinterSettings: Configurable {
 
     override fun getHelpTopic(): String? = null
 
-
-
     override fun createComponent(): JComponent {
-
-        TextFieldWithHistoryWithBrowseButton()
-
-        jTextSqlLintOptions = JTextField("", 39)
-
 
         val lintFieldsWrapperBuilder = FormBuilder.createFormBuilder()
             .setHorizontalGap(UIUtil.DEFAULT_HGAP)
@@ -109,45 +99,23 @@ class LinterSettings: Configurable {
 
         lintFieldsWrapperBuilder.addLabeledComponent("Python path:", pythonPathField)
             .addLabeledComponent("sqlfluff.py path:", linterPathField)
-
+            .addLabeledComponent("Arguments: ", argumentsField)
 
         val builder = FormBuilder.createFormBuilder()
             .setHorizontalGap(UIUtil.DEFAULT_HGAP)
             .setVerticalGap(UIUtil.DEFAULT_VGAP)
 
-        val panel = builder.addComponent(lintFieldsWrapperBuilder.getPanel())
-            //.addComponent(myConfigFileView.getComponent())
+        val panel = builder
+            .addComponent(globalConfigView.getComponent())
+            .addComponent(lintFieldsWrapperBuilder.panel)
             .addSeparator(4)
             .addVerticalGap(4)
             .panel
 
         val centerPanel = SwingHelper.wrapWithHorizontalStretch(panel)
-
         centerPanel.border = BorderFactory.createEmptyBorder(5, 0, 0, 0)
 
         return centerPanel
-
-
-        /*val jPanel = JPanel()
-
-        val verticalLayout = VerticalLayout(1, 2)
-        jPanel.layout = verticalLayout
-
-        val jLabelCpplintOptions = JLabel("sqlfluff.py options:")
-        jTextSqlLintOptions = JTextField("", 39)
-
-        reset()
-
-        jFilePickerPython.addDocumentListener(listener)
-        jFilePickerSqlLint.addDocumentListener(listener)
-        jTextSqlLintOptions.document.addDocumentListener(listener)
-
-        jPanel.add(jFilePickerPython)
-        jPanel.add(jFilePickerSqlLint)
-        jPanel.add(jLabelCpplintOptions)
-        jPanel.add(jTextSqlLintOptions)
-
-        return jPanel*/
     }
 
     private fun createTextFieldWithHistory(defaultValues: NotNullProducer<List<String>>): TextFieldWithHistoryWithBrowseButton {
@@ -168,41 +136,21 @@ class LinterSettings: Configurable {
 
     private fun detectLinters(): NotNullProducer<List<String>> = NotNullProducer { arrayListOf() }
 
-    override fun isModified(): Boolean = modified
-
-    fun setModified(modified: Boolean) {
-        this.modified = modified
+    override fun isModified(): Boolean {
+        return !Objects.equals(pythonPathField.text, Settings[OPTION_KEY_PYTHON])
+                || !Objects.equals(linterPathField.text, Settings[OPTION_KEY_SQLLINT])
+                || !Objects.equals(argumentsField.text, Settings[OPTION_KEY_SQLLINT_ARGUMENTS])
     }
 
     override fun reset() {
-        super.reset()
-    }
-
-    override fun disposeUIResources() {
-        super.disposeUIResources()
+        pythonPathField.text = Settings[OPTION_KEY_PYTHON]
+        linterPathField.text = Settings[OPTION_KEY_SQLLINT]
+        argumentsField.text = Settings[OPTION_KEY_SQLLINT_ARGUMENTS]
     }
 
     override fun apply() {
-        TODO("Not yet implemented")
-    }
-
-    private class OptionModifiedListener(option: LinterSettings) : DocumentListener {
-        private val option: LinterSettings
-
-        init {
-            this.option = option
-        }
-
-        override fun insertUpdate(documentEvent: DocumentEvent) {
-            option.isModified = true
-        }
-
-        override fun removeUpdate(documentEvent: DocumentEvent) {
-            option.isModified = true
-        }
-
-        override fun changedUpdate(documentEvent: DocumentEvent) {
-            option.isModified = true
-        }
+        Settings[OPTION_KEY_PYTHON] = pythonPathField.text
+        Settings[OPTION_KEY_SQLLINT] = linterPathField.text
+        Settings[OPTION_KEY_SQLLINT_ARGUMENTS] = argumentsField.text
     }
 }
