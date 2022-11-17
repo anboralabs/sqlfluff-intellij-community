@@ -1,8 +1,10 @@
-package co.anbora.labs.sqlfluff.settings
+package co.anbora.labs.sqlfluff.ide.settings
 
-import co.anbora.labs.sqlfluff.settings.Settings.OPTION_KEY_PYTHON
-import co.anbora.labs.sqlfluff.settings.Settings.OPTION_KEY_SQLLINT
-import co.anbora.labs.sqlfluff.settings.Settings.OPTION_KEY_SQLLINT_ARGUMENTS
+import co.anbora.labs.sqlfluff.ide.ui.GlobalConfigView
+import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_PYTHON
+import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT
+import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT_ARGUMENTS
+import co.anbora.labs.sqlfluff.settings.findColorByKey
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.ui.TextComponentAccessors

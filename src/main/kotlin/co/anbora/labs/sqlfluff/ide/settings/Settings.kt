@@ -1,4 +1,4 @@
-package co.anbora.labs.sqlfluff.settings
+package co.anbora.labs.sqlfluff.ide.settings
 
 import com.intellij.ide.util.PropertiesComponent
 

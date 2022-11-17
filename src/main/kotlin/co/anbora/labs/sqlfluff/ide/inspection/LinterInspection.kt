@@ -1,5 +1,7 @@
-package co.anbora.labs.sqlfluff.lint
+package co.anbora.labs.sqlfluff.ide.inspection
 
+import co.anbora.labs.sqlfluff.lint.LintRunner
+import co.anbora.labs.sqlfluff.lint.isSqlFileType
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemDescriptor

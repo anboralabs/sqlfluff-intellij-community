@@ -1,4 +1,4 @@
-package co.anbora.labs.sqlfluff.settings
+package co.anbora.labs.sqlfluff.ide.ui
 
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.components.JBRadioButton
