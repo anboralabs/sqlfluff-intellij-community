@@ -4,6 +4,7 @@ import co.anbora.labs.sqlfluff.ide.ui.GlobalConfigView
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_PYTHON
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT_ARGUMENTS
+import co.anbora.labs.sqlfluff.lint.LinterConfig
 import co.anbora.labs.sqlfluff.settings.findColorByKey
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.options.Configurable
@@ -18,6 +19,7 @@ import com.intellij.util.ui.SwingHelper
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.util.Objects
+import java.util.function.Consumer
 import java.util.function.Supplier
 import javax.swing.BorderFactory
 import javax.swing.JComponent
@@ -31,11 +33,7 @@ class LinterSettings: Configurable {
     private lateinit var linterPathField: TextFieldWithHistoryWithBrowseButton
     private lateinit var argumentsField: JTextField
 
-    private val globalConfigView = GlobalConfigView()
-
-    private lateinit var rdDisableLint: JBRadioButton
-    private lateinit var rdUseGlobalLinter: JBRadioButton
-    private lateinit var rdUseManualLinter: JBRadioButton
+    private val globalConfigView = GlobalConfigView(disabledBehavior())
 
     init {
         createUI()
@@ -138,21 +136,30 @@ class LinterSettings: Configurable {
 
     private fun detectLinters(): NotNullProducer<List<String>> = NotNullProducer { arrayListOf() }
 
+    private fun disabledBehavior(): Consumer<LinterConfig> = Consumer {
+        pythonPathField.isEnabled = LinterConfig.CUSTOM == it
+        linterPathField.isEnabled = LinterConfig.CUSTOM == it
+        argumentsField.isEnabled = LinterConfig.GLOBAL == it || LinterConfig.CUSTOM == it
+    }
+
     override fun isModified(): Boolean {
         return !Objects.equals(pythonPathField.text, Settings[OPTION_KEY_PYTHON])
                 || !Objects.equals(linterPathField.text, Settings[OPTION_KEY_SQLLINT])
                 || !Objects.equals(argumentsField.text, Settings[OPTION_KEY_SQLLINT_ARGUMENTS])
+                || globalConfigView.isModified()
     }
 
     override fun reset() {
         pythonPathField.text = Settings[OPTION_KEY_PYTHON]
         linterPathField.text = Settings[OPTION_KEY_SQLLINT]
         argumentsField.text = Settings[OPTION_KEY_SQLLINT_ARGUMENTS]
+        globalConfigView.reset()
     }
 
     override fun apply() {
         Settings[OPTION_KEY_PYTHON] = pythonPathField.text
         Settings[OPTION_KEY_SQLLINT] = linterPathField.text
         Settings[OPTION_KEY_SQLLINT_ARGUMENTS] = argumentsField.text
+        globalConfigView.apply()
     }
 }
