@@ -11,6 +11,16 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <projectConfigurable groupId="tools" displayName="Sqlfluff Linter" id="preference.SqlFluffLinterConfigurable" instance="co.anbora.labs.sqlfluff.ide.settings.LinterSettings" />
+        <projectConfigurable
+                groupId="tools"
+                displayName="Sqlfluff Linter"
+                id="preference.SqlFluffLinterConfigurable"
+                instance="co.anbora.labs.sqlfluff.ide.settings.LinterSettings" />
+        <localInspection implementationClass="co.anbora.labs.sqlfluff.ide.inspection.LinterInspection"
+                         displayName="sqlfluff inspection"
+                         groupName="Sql: line"
+                         id="SqlFluffInspection"
+                         level="WEAK WARNING"
+                         enabledByDefault="true"/>
     </extensions>
 </idea-plugin>

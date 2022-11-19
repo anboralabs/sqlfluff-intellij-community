@@ -1,6 +1,9 @@
 package co.anbora.labs.sqlfluff.ide.inspection
 
+import co.anbora.labs.sqlfluff.ide.settings.Settings
+import co.anbora.labs.sqlfluff.ide.settings.Settings.SELECTED_LINTER
 import co.anbora.labs.sqlfluff.lint.LintRunner
+import co.anbora.labs.sqlfluff.lint.LinterConfig
 import co.anbora.labs.sqlfluff.lint.isSqlFileType
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.LocalInspectionTool
@@ -18,7 +21,9 @@ class LinterInspection: LocalInspectionTool() {
         val document = FileDocumentManager.getInstance().getDocument(file.virtualFile)
             ?: return arrayOf()
 
-        return LintRunner.lint(file, manager, document).toTypedArray()
+        val linterType = LinterConfig.valueOf(Settings[SELECTED_LINTER])
+
+        return linterType.lint(file, manager, document).toTypedArray()
     }
 
 
