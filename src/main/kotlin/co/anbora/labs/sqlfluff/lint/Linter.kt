@@ -1,17 +1,20 @@
 package co.anbora.labs.sqlfluff.lint
 
+import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixesManager
 import co.anbora.labs.sqlfluff.ide.settings.Settings
 import co.anbora.labs.sqlfluff.ide.settings.Settings.DEFAULT_ARGUMENTS
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_PYTHON
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT_ARGUMENTS
 import com.intellij.codeInspection.InspectionManager
-import com.intellij.codeInspection.LocalQuickFix
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.PsiUtilCore
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -102,7 +105,7 @@ sealed class Linter {
         return problemDescriptors
     }
 
-    private val PATTERN = Pattern.compile("L:\\s+\\d+\\s+\\|\\s+P:\\s+\\d+\\s+\\|\\s+L\\d+\\s+\\|\\s+\\D+\\.")
+    private val PATTERN = Pattern.compile("L:\\s+(\\d+)\\s+\\|\\s+P:\\s+(\\d+)\\s+\\|\\s+(L\\d+)\\s+\\|\\s+(\\D+\\.)")
 
     fun parseLintResult(
         file: PsiFile,
@@ -115,9 +118,35 @@ sealed class Linter {
         if (!matcher.matches()) {
             return null
         }
-        val fix: LocalQuickFix? = null
+        var lineNumber = matcher.group(1).toInt(10)
+        val lineCount = document.lineCount
+        if (0 == lineCount) {
+            return null
+        }
+        lineNumber = if (lineNumber >= lineCount) lineCount - 1 else lineNumber
+        lineNumber = if (lineNumber > 0) lineNumber - 1 else 0
+
+        val position = matcher.group(2).toInt(10)
+        val errorType = matcher.group(3)
+        val errorDescription = matcher.group(4)
+
+        val lineStartOffset = document.getLineStartOffset(lineNumber)
+        val lineEndOffset = document.getLineEndOffset(lineNumber)
+
+        val errorMessage = "sqlfluff [$errorType]: $errorDescription"
+
+        val initialPosition = if (position > 0) position -1 else 0
+
+        val lit = PsiUtilCore.getElementAtOffset(file, position)
+
+        val fix = QuickFixesManager[errorType]
         return manager.createProblemDescriptor(
-            file, "|", fix, ProblemHighlightType.ERROR, true
+            file,
+            null,
+            errorMessage,
+            ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
+            true,
+            fix
         )
     }
 
