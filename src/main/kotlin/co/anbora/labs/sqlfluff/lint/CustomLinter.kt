@@ -1,8 +1,7 @@
 package co.anbora.labs.sqlfluff.lint
 
 import co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator
-import com.intellij.codeInspection.InspectionManager
-import com.intellij.codeInspection.ProblemDescriptor
+import co.anbora.labs.sqlfluff.ide.runner.SqlFluffLintRunner
 import com.intellij.openapi.editor.Document
 import com.intellij.psi.PsiFile
 
@@ -11,7 +10,7 @@ object CustomLinter: Linter() {
         TODO("Not yet implemented")
     }
 
-    override fun buildCommandLineArgs(python: String, lint: String, lintOptions: String, file: PsiFile): List<String> {
+    override fun buildCommandLineArgs(python: String, lint: String, lintOptions: String, file: PsiFile): SqlFluffLintRunner.Param {
         TODO("Not yet implemented")
     }
 }

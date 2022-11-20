@@ -2,6 +2,7 @@ package co.anbora.labs.sqlfluff.lint
 
 import co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator
 import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixesManager
+import co.anbora.labs.sqlfluff.ide.runner.SqlFluffLintRunner
 import co.anbora.labs.sqlfluff.ide.settings.Settings
 import co.anbora.labs.sqlfluff.ide.settings.Settings.DEFAULT_ARGUMENTS
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_PYTHON
@@ -48,7 +49,7 @@ sealed class Linter {
             arguments = DEFAULT_ARGUMENTS
         }
 
-        val args: List<String> = buildCommandLineArgs(
+        val args = buildCommandLineArgs(
             Settings[OPTION_KEY_PYTHON],
             Settings[OPTION_KEY_SQLLINT],
             arguments,
@@ -58,49 +59,24 @@ sealed class Linter {
         return runLinter(file, document, args)
     }
 
-    fun runLinter(
+    private fun runLinter(
         file: PsiFile,
         document: Document,
-        args: List<String>
+        args: SqlFluffLintRunner.Param
     ): List<LinterExternalAnnotator.Error> {
-        val pb = ProcessBuilder(args)
-        val proc: Process = try {
-            pb.start()
-        } catch (e: IOException) {
-            LOGGER.error(
-                "Failed to run lint against file: " + file.virtualFile.canonicalPath,
-                e
+        val result = SqlFluffLintRunner.runLint(args)
+        return result.output.mapNotNull {
+            parseLintResult(
+                file,
+                document,
+                it
             )
-            return emptyList()
         }
-        val problemDescriptors: MutableList<LinterExternalAnnotator.Error> = ArrayList()
-        try {
-            BufferedReader(InputStreamReader(proc.inputStream)).use { stdError ->
-                var line: String? = null
-                while (stdError.readLine().also { line = it } != null) {
-                    val problemDescriptor =
-                        parseLintResult(
-                            file,
-                            document,
-                            line
-                        ) ?: continue
-                    problemDescriptors.add(problemDescriptor)
-                }
-            }
-        } catch (e: IOException) {
-            LOGGER.error(
-                "Failed to run lint against file: " + file.virtualFile.canonicalPath,
-                e
-            )
-            return emptyList()
-        }
-
-        return problemDescriptors
     }
 
     private val PATTERN = Pattern.compile("L:\\s+(\\d+)\\s+\\|\\s+P:\\s+(\\d+)\\s+\\|\\s+(L\\d+)\\s+\\|\\s+(\\D+)")
 
-    fun parseLintResult(
+    private fun parseLintResult(
         file: PsiFile,
         document: Document,
         line: String?
@@ -134,7 +110,7 @@ sealed class Linter {
         val fix = QuickFixesManager[errorType]
         return LinterExternalAnnotator.Error(
             errorMessage,
-            lit.textRange,
+            file.textRange,
             errorType
         )
     }
@@ -144,5 +120,5 @@ sealed class Linter {
         lint: String,
         lintOptions: String,
         file: PsiFile
-    ): List<String>
+    ): SqlFluffLintRunner.Param
 }

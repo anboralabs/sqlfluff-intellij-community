@@ -1,6 +1,7 @@
 package co.anbora.labs.sqlfluff.lint
 
 import co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator
+import co.anbora.labs.sqlfluff.ide.runner.SqlFluffLintRunner
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.openapi.editor.Document
@@ -17,5 +18,5 @@ object DisabledLinter: Linter() {
         lint: String,
         lintOptions: String,
         file: PsiFile
-    ): List<String> = listOf()
+    ): SqlFluffLintRunner.Param = SqlFluffLintRunner.Param()
 }

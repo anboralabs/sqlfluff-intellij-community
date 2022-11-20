@@ -1,6 +1,8 @@
 package co.anbora.labs.sqlfluff.lint
 
+import co.anbora.labs.sqlfluff.ide.runner.SqlFluffLintRunner
 import com.intellij.psi.PsiFile
+import kotlin.io.path.pathString
 
 private const val SQL_FLUFF = "sqlfluff"
 
@@ -11,8 +13,11 @@ object GlobalLinter: Linter() {
         lint: String,
         lintOptions: String,
         file: PsiFile
-    ): List<String> {
-        val command = "$SQL_FLUFF lint ${file.virtualFile.canonicalPath} $lintOptions"
-        return command.split(" ")
+    ): SqlFluffLintRunner.Param {
+        return SqlFluffLintRunner.Param(
+            workDirectory = file.virtualFile.toNioPath().parent.pathString,
+            execPath = SQL_FLUFF,
+            extraArgs = listOf("lint", file.virtualFile.canonicalPath.orEmpty(), *lintOptions.split(" ").toTypedArray())
+        )
     }
 }
