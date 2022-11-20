@@ -1,12 +1,13 @@
 package co.anbora.labs.sqlfluff.ide.quickFix
 
+import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.LocalQuickFix
 
 object QuickFixesManager {
-    operator fun get(errorType: String): LocalQuickFix? = fixes[errorType]
+    operator fun get(errorType: String): IntentionAction? = fixes[errorType]
 
     //TODO implement quick fixes
-    private val fixes: Map<String, LocalQuickFix?> = mapOf(
+    private val fixes: Map<String, IntentionAction?> = mapOf(
         "L001" to null,
         "L002" to null,
         "L003" to null,

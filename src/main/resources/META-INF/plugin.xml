@@ -16,8 +16,9 @@
                 displayName="Sqlfluff Linter"
                 id="preference.SqlFluffLinterConfigurable"
                 instance="co.anbora.labs.sqlfluff.ide.settings.LinterSettings" />
+        <externalAnnotator language="SQL" implementationClass="co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator"/>
         <localInspection implementationClass="co.anbora.labs.sqlfluff.ide.inspection.LinterInspection"
-                         displayName="sqlfluff inspection"
+                         displayName="SqlFluff inspection"
                          groupName="Sql: line"
                          id="SqlFluffInspection"
                          level="WEAK WARNING"

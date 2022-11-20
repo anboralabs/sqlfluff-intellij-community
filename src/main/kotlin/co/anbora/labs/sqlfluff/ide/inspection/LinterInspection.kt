@@ -1,31 +1,32 @@
 package co.anbora.labs.sqlfluff.ide.inspection
 
-import co.anbora.labs.sqlfluff.ide.settings.Settings
-import co.anbora.labs.sqlfluff.ide.settings.Settings.SELECTED_LINTER
-import co.anbora.labs.sqlfluff.lint.LintRunner
-import co.anbora.labs.sqlfluff.lint.LinterConfig
-import co.anbora.labs.sqlfluff.lint.isSqlFileType
-import com.intellij.codeInspection.InspectionManager
-import com.intellij.codeInspection.LocalInspectionTool
-import com.intellij.codeInspection.ProblemDescriptor
-import com.intellij.openapi.fileEditor.FileDocumentManager
+import co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator
+import com.intellij.codeInspection.*
+import com.intellij.codeInspection.ex.UnfairLocalInspectionTool
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
 
-class LinterInspection: LocalInspectionTool() {
+class LinterInspection: LocalInspectionTool(), BatchSuppressableTool, UnfairLocalInspectionTool {
 
-    override fun checkFile(file: PsiFile, manager: InspectionManager, isOnTheFly: Boolean): Array<ProblemDescriptor> {
-        if (!file.isSqlFileType()) {
-            return arrayOf()
-        }
+    override fun checkFile(
+        file: PsiFile,
+        manager: InspectionManager,
+        isOnTheFly: Boolean
+    ): Array<ProblemDescriptor> = ExternalAnnotatorInspectionVisitor.checkFileWithExternalAnnotator(
+        file,
+        manager,
+        isOnTheFly,
+        LinterExternalAnnotator()
+    )
 
-        val document = FileDocumentManager.getInstance().getDocument(file.virtualFile)
-            ?: return arrayOf()
+    override fun buildVisitor(
+        holder: ProblemsHolder,
+        isOnTheFly: Boolean,
+        session: LocalInspectionToolSession
+    ): PsiElementVisitor = ExternalAnnotatorInspectionVisitor(holder, LinterExternalAnnotator(), isOnTheFly)
 
-        val linterType = LinterConfig.valueOf(Settings[SELECTED_LINTER])
+    override fun isSuppressedFor(element: PsiElement): Boolean = false
 
-        return linterType.lint(file, manager, document).toTypedArray()
-    }
-
-
-
+    override fun getBatchSuppressActions(element: PsiElement?): Array<SuppressQuickFix> = arrayOf()
 }

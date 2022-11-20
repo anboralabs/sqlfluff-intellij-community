@@ -1,5 +1,6 @@
 package co.anbora.labs.sqlfluff.lint
 
+import co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator
 import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixesManager
 import co.anbora.labs.sqlfluff.ide.settings.Settings
 import co.anbora.labs.sqlfluff.ide.settings.Settings.DEFAULT_ARGUMENTS
@@ -11,8 +12,6 @@ import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
-import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiUtilCore
 import java.io.BufferedReader
@@ -28,16 +27,15 @@ sealed class Linter {
 
     open fun lint(
         file: PsiFile,
-        manager: InspectionManager,
         document: Document
-    ): List<ProblemDescriptor> {
+    ): List<LinterExternalAnnotator.Error> {
 
-        val baseDir = file.project.baseDir
-        if (null == baseDir) {
-            LOGGER.error("No valid base directory found!")
+        val vFile = file.virtualFile
+        if (null == vFile) {
+            LOGGER.error("No valid file found!")
             return emptyList()
         }
-        val canonicalPath = baseDir.canonicalPath
+        val canonicalPath = vFile.canonicalPath
         if (canonicalPath.isNullOrBlank()) {
             LOGGER.error("Failed to get canonical path!")
             return emptyList()
@@ -57,19 +55,15 @@ sealed class Linter {
             file
         )
 
-        return runLinter(file, manager, document, canonicalPath, args)
+        return runLinter(file, document, args)
     }
 
     fun runLinter(
         file: PsiFile,
-        manager: InspectionManager,
         document: Document,
-        canonicalPath: String,
         args: List<String>
-    ): List<ProblemDescriptor> {
-        val lintWorkingDirectory = file.virtualFile.toNioPath().parent.toFile()
+    ): List<LinterExternalAnnotator.Error> {
         val pb = ProcessBuilder(args)
-        pb.directory(lintWorkingDirectory)
         val proc: Process = try {
             pb.start()
         } catch (e: IOException) {
@@ -79,7 +73,7 @@ sealed class Linter {
             )
             return emptyList()
         }
-        val problemDescriptors: MutableList<ProblemDescriptor> = ArrayList()
+        val problemDescriptors: MutableList<LinterExternalAnnotator.Error> = ArrayList()
         try {
             BufferedReader(InputStreamReader(proc.inputStream)).use { stdError ->
                 var line: String? = null
@@ -87,7 +81,6 @@ sealed class Linter {
                     val problemDescriptor =
                         parseLintResult(
                             file,
-                            manager,
                             document,
                             line
                         ) ?: continue
@@ -105,14 +98,13 @@ sealed class Linter {
         return problemDescriptors
     }
 
-    private val PATTERN = Pattern.compile("L:\\s+(\\d+)\\s+\\|\\s+P:\\s+(\\d+)\\s+\\|\\s+(L\\d+)\\s+\\|\\s+(\\D+\\.)")
+    private val PATTERN = Pattern.compile("L:\\s+(\\d+)\\s+\\|\\s+P:\\s+(\\d+)\\s+\\|\\s+(L\\d+)\\s+\\|\\s+(\\D+)")
 
     fun parseLintResult(
         file: PsiFile,
-        manager: InspectionManager,
         document: Document,
         line: String?
-    ): ProblemDescriptor? {
+    ): LinterExternalAnnotator.Error? {
 
         val matcher = PATTERN.matcher(line)
         if (!matcher.matches()) {
@@ -140,13 +132,10 @@ sealed class Linter {
         val lit = PsiUtilCore.getElementAtOffset(file, position)
 
         val fix = QuickFixesManager[errorType]
-        return manager.createProblemDescriptor(
-            file,
-            null,
+        return LinterExternalAnnotator.Error(
             errorMessage,
-            ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
-            true,
-            fix
+            lit.textRange,
+            errorType
         )
     }
 
