@@ -27,6 +27,8 @@ sealed class Linter {
         Linter::class.java
     )
 
+    protected val LINT_COMMAND = "lint"
+
     open fun lint(
         file: PsiFile,
         document: Document

@@ -22,7 +22,7 @@ object GlobalLinter: Linter() {
         return SqlFluffLintRunner.Param(
             workDirectory = file.virtualFile.toNioPath().parent.pathString,
             execPath = SQL_FLUFF,
-            extraArgs = listOf("lint", tempFile.pathString, *lintOptions.split(" ").toTypedArray())
+            extraArgs = listOf(LINT_COMMAND, tempFile.pathString, *lintOptions.split(" ").toTypedArray())
         )
     }
 }
