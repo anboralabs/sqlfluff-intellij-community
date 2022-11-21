@@ -1,6 +1,5 @@
 package co.anbora.labs.sqlfluff.ide.runner
 
-import com.google.common.base.Charsets
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.*
@@ -10,9 +9,7 @@ object CommandLineRunner {
 
     @Throws(ExecutionException::class)
     fun execute(commandLine: GeneralCommandLine, timeoutInMilliseconds: Int): ProcessOutput {
-        val command = commandLine.commandLineString
-        val process = commandLine.createProcess()
-        val processHandler = OSProcessHandler(process, command, Charsets.UTF_8)
+        val processHandler = OSProcessHandler(commandLine)
         val output = ProcessOutput()
         processHandler.addProcessListener(object : ProcessAdapter() {
             override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {

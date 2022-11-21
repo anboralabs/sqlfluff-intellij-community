@@ -11,14 +11,14 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import java.util.*
 
 class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.CollectedInfo, Collection<LinterExternalAnnotator.Error>>() {
 
     data class CollectedInfo(val document: Document, val file: PsiFile)
-    data class Error(val message: String, val range: TextRange, val errorType: String)
+    data class Error(val message: String, val psiElement: PsiElement, val errorType: String)
 
     private val log = Logger.getInstance(
         LinterExternalAnnotator::class.java
@@ -66,7 +66,7 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.Collect
     override fun apply(file: PsiFile, annotationResult: Collection<Error>?, holder: AnnotationHolder) {
         annotationResult?.let {
             for (error in it) {
-                var builder = holder.newAnnotation(HighlightSeverity.WARNING, error.message).range(error.range)
+                var builder = holder.newAnnotation(HighlightSeverity.WARNING, error.message).range(error.psiElement)
                 val fix = QuickFixesManager[error.errorType]
                 if (fix != null) {
                     builder = builder.newFix(fix).registerFix()

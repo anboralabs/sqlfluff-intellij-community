@@ -17,6 +17,7 @@ object DisabledLinter: Linter() {
         python: String,
         lint: String,
         lintOptions: String,
-        file: PsiFile
+        file: PsiFile,
+        document: Document
     ): SqlFluffLintRunner.Param = SqlFluffLintRunner.Param()
 }

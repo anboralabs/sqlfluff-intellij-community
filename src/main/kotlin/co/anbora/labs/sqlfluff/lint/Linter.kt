@@ -18,6 +18,7 @@ import com.intellij.psi.util.PsiUtilCore
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
+import java.util.concurrent.CompletableFuture
 import java.util.regex.Pattern
 
 sealed class Linter {
@@ -53,7 +54,8 @@ sealed class Linter {
             Settings[OPTION_KEY_PYTHON],
             Settings[OPTION_KEY_SQLLINT],
             arguments,
-            file
+            file,
+            document
         )
 
         return runLinter(file, document, args)
@@ -103,14 +105,14 @@ sealed class Linter {
 
         val errorMessage = "sqlfluff [$errorType]: $errorDescription"
 
-        val initialPosition = if (position > 0) position -1 else 0
+        val initialPosition = if (position > 0) position - 1 else 0
 
-        val lit = PsiUtilCore.getElementAtOffset(file, position)
+        val lit = PsiUtilCore.getElementAtOffset(file, initialPosition)
 
         val fix = QuickFixesManager[errorType]
         return LinterExternalAnnotator.Error(
             errorMessage,
-            file.textRange,
+            lit,
             errorType
         )
     }
@@ -119,6 +121,7 @@ sealed class Linter {
         python: String,
         lint: String,
         lintOptions: String,
-        file: PsiFile
+        file: PsiFile,
+        document: Document
     ): SqlFluffLintRunner.Param
 }
