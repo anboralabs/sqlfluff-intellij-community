@@ -1,7 +1,6 @@
 package co.anbora.labs.sqlfluff.ide.quickFix
 
 import com.intellij.codeInsight.intention.IntentionAction
-import com.intellij.codeInspection.LocalQuickFix
 
 object QuickFixesManager {
     operator fun get(errorType: String): IntentionAction? = fixes[errorType]
