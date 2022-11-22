@@ -8,17 +8,11 @@ import co.anbora.labs.sqlfluff.ide.settings.Settings.DEFAULT_ARGUMENTS
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_PYTHON
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT_ARGUMENTS
-import com.intellij.codeInspection.InspectionManager
-import com.intellij.codeInspection.ProblemDescriptor
-import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.wm.StatusBar
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiUtilCore
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
-import java.util.concurrent.CompletableFuture
 import java.util.regex.Pattern
 
 sealed class Linter {
@@ -69,6 +63,7 @@ sealed class Linter {
         args: SqlFluffLintRunner.Param
     ): List<LinterExternalAnnotator.Error> {
         val result = SqlFluffLintRunner.runLint(args)
+        StatusBar.Info.set(result.errorOutput, file.project)
         return result.output.mapNotNull {
             parseLintResult(
                 file,
