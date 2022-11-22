@@ -3,7 +3,6 @@ package co.anbora.labs.sqlfluff.ide.ui
 import co.anbora.labs.sqlfluff.ide.settings.Settings
 import co.anbora.labs.sqlfluff.ide.settings.Settings.SELECTED_LINTER
 import co.anbora.labs.sqlfluff.lint.LinterConfig
-import com.intellij.database.console.session.consumer
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.util.ui.FormBuilder

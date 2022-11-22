@@ -17,10 +17,10 @@ repositories {
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     version.set("2021.3.3")
-    type.set("IU") // Target IDE Platform
+    type.set("IC") // Target IDE Platform
     downloadSources.set(true)
 
-    plugins.set(properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty))
+    plugins.set(listOf())
 }
 
 tasks {

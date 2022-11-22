@@ -85,28 +85,21 @@ sealed class Linter {
         if (!matcher.matches()) {
             return null
         }
-        var lineNumber = matcher.group(1).toInt(10)
+
         val lineCount = document.lineCount
         if (0 == lineCount) {
             return null
         }
-        lineNumber = if (lineNumber >= lineCount) lineCount - 1 else lineNumber
-        lineNumber = if (lineNumber > 0) lineNumber - 1 else 0
 
         val position = matcher.group(2).toInt(10)
         val errorType = matcher.group(3)
         val errorDescription = matcher.group(4)
-
-        val lineStartOffset = document.getLineStartOffset(lineNumber)
-        val lineEndOffset = document.getLineEndOffset(lineNumber)
 
         val errorMessage = "sqlfluff [$errorType]: $errorDescription"
 
         val initialPosition = if (position > 0) position - 1 else 0
 
         val lit = PsiUtilCore.getElementAtOffset(file, initialPosition)
-
-        val fix = QuickFixesManager[errorType]
         return LinterExternalAnnotator.Error(
             errorMessage,
             lit,
