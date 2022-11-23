@@ -73,7 +73,7 @@ sealed class Linter {
         }
     }
 
-    private val PATTERN = Pattern.compile("L:\\s+(\\d+)\\s+\\|\\s+P:\\s+(\\d+)\\s+\\|\\s+(L\\d+)\\s+\\|\\s+(\\D+)")
+    private val PATTERN = Pattern.compile("L:\\s+(\\d+)\\s+\\|\\s+P:\\s+(\\d+)\\s+\\|\\s+(L\\d+)\\s+\\|\\s+(.+)")
 
     private fun parseLintResult(
         file: PsiFile,
