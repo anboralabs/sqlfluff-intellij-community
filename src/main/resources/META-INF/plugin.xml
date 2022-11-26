@@ -22,5 +22,6 @@
                          id="SqlFluffInspection"
                          level="WEAK WARNING"
                          enabledByDefault="true"/>
+        <pluginReplacement implementation="co.anbora.labs.sqlfluff.ide.replacement.LinterPluginReplacement"/>
     </extensions>
 </idea-plugin>

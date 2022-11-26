@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "co.anbora.labs"
-version = "1.0"
+version = "1.1"
 
 repositories {
     mavenCentral()
@@ -18,7 +18,6 @@ repositories {
 intellij {
     version.set("2021.3.3")
     type.set("IC") // Target IDE Platform
-    downloadSources.set(true)
 
     plugins.set(listOf())
 }
