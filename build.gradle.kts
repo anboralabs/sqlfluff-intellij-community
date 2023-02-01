@@ -3,11 +3,11 @@ fun properties(key: String) = project.findProperty(key).toString()
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.7.10"
-    id("org.jetbrains.intellij") version "1.11.0"
+    id("org.jetbrains.intellij") version "1.12.0"
 }
 
 group = "co.anbora.labs"
-version = "1.2.3"
+version = "1.2.4"
 
 repositories {
     mavenCentral()
@@ -16,7 +16,7 @@ repositories {
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
-    version.set("2022.3")
+    version.set("LATEST-EAP-SNAPSHOT")
     type.set("IU") // Target IDE Platform
 
     plugins.set(listOf())
@@ -33,8 +33,8 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("223")
-        untilBuild.set("223.*")
+        sinceBuild.set("231")
+        untilBuild.set("231.*")
         changeNotes.set(file("src/main/html/change-notes.html").inputStream().readBytes().toString(Charsets.UTF_8))
         pluginDescription.set(file("src/main/html/description.html").inputStream().readBytes().toString(Charsets.UTF_8))
     }
