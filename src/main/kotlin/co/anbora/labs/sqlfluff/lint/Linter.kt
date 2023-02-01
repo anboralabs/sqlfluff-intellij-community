@@ -73,7 +73,7 @@ sealed class Linter {
         }
     }
 
-    private val PATTERN = Pattern.compile("L:\\s+(\\d+)\\s+\\|\\s+P:\\s+(\\d+)\\s+\\|\\s+(L\\d+)\\s+\\|\\s+(.+)")
+    private val PATTERN = Pattern.compile("L:\\s+(\\d+)\\s+\\|\\s+P:\\s+(\\d+)\\s+\\|\\s+(.+)\\s+\\|\\s+(.+)")
 
     private fun parseLintResult(
         file: PsiFile,
@@ -91,18 +91,14 @@ sealed class Linter {
             return null
         }
 
-        val position = matcher.group(2).toInt(10)
         val errorType = matcher.group(3)
         val errorDescription = matcher.group(4)
 
         val errorMessage = "sqlfluff [$errorType]: $errorDescription"
 
-        val initialPosition = if (position > 0) position - 1 else 0
-
-        val lit = PsiUtilCore.getElementAtOffset(file, initialPosition)
         return LinterExternalAnnotator.Error(
             errorMessage,
-            lit,
+            file,
             errorType
         )
     }
