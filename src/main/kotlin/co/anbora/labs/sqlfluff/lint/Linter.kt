@@ -1,18 +1,17 @@
 package co.anbora.labs.sqlfluff.lint
 
 import co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator
-import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixesManager
 import co.anbora.labs.sqlfluff.ide.runner.SqlFluffLintRunner
 import co.anbora.labs.sqlfluff.ide.settings.Settings
 import co.anbora.labs.sqlfluff.ide.settings.Settings.DEFAULT_ARGUMENTS
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_PYTHON
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT_ARGUMENTS
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
-import com.intellij.openapi.wm.StatusBar
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
-import com.intellij.psi.util.PsiUtilCore
 import java.util.regex.Pattern
 
 sealed class Linter {
@@ -63,10 +62,8 @@ sealed class Linter {
         args: SqlFluffLintRunner.Param
     ): List<LinterExternalAnnotator.Error> {
         val result = SqlFluffLintRunner.runLint(args)
-        StatusBar.Info.set(result.errorOutput, file.project)
         return result.output.mapNotNull {
             parseLintResult(
-                file,
                 document,
                 it
             )
@@ -74,9 +71,9 @@ sealed class Linter {
     }
 
     private val PATTERN = Pattern.compile("L:\\s+(\\d+)\\s+\\|\\s+P:\\s+(\\d+)\\s+\\|\\s+(.+)\\s+\\|\\s+(.+)")
+    private val WARNING_PATTERN = Pattern.compile("L(\\d+)")
 
     private fun parseLintResult(
-        file: PsiFile,
         document: Document,
         line: String?
     ): LinterExternalAnnotator.Error? {
@@ -85,21 +82,34 @@ sealed class Linter {
         if (!matcher.matches()) {
             return null
         }
-
+        var lineNumber = matcher.group(1).toInt(10)
         val lineCount = document.lineCount
         if (0 == lineCount) {
             return null
         }
+        lineNumber = if (lineNumber > 0) lineNumber - 1 else lineNumber
 
+        val position = matcher.group(2).toInt(10)
         val errorType = matcher.group(3)
         val errorDescription = matcher.group(4)
 
+        val lineStartOffset = document.getLineStartOffset(lineNumber)
+
         val errorMessage = "sqlfluff [$errorType]: $errorDescription"
+
+        val initialPosition = if (position > 0) position - 1 else 0
+
+        val lit = TextRange.from(lineStartOffset + initialPosition, 0)
+
+        val severity = when {
+            WARNING_PATTERN.matcher(errorType).matches() -> HighlightSeverity.WARNING
+            else -> HighlightSeverity.ERROR
+        }
 
         return LinterExternalAnnotator.Error(
             errorMessage,
-            file,
-            errorType
+            lit,
+            severity
         )
     }
 

@@ -20,7 +20,6 @@ object GlobalLinter: Linter() {
         val tempFile = Files.createTempFile(null, ".sql")
         Files.write(tempFile, document.text.toByteArray()) //hack trick because virtual file has the changes and real file no
         return SqlFluffLintRunner.Param(
-            workDirectory = file.virtualFile.toNioPath().parent.pathString,
             execPath = SQL_FLUFF,
             extraArgs = listOf(LINT_COMMAND, tempFile.pathString, *lintOptions.split(" ").toTypedArray())
         )

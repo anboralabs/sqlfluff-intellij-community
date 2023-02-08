@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit
 
 object SqlFluffLintRunner {
 
-    data class Param(val workDirectory: String = "", val execPath: String = "", val extraArgs: List<String> = listOf())
+    data class Param(val execPath: String = "", val extraArgs: List<String> = listOf())
 
     private val log: Logger = Logger.getInstance(SqlFluffLintRunner::class.java)
 
@@ -47,7 +47,6 @@ object SqlFluffLintRunner {
         val commandLine = GeneralCommandLine()
         commandLine
             .withCharset(StandardCharsets.UTF_8)
-            .setWorkDirectory(params.workDirectory)
         commandLine.exePath = params.execPath
 
         params.extraArgs.forEach {

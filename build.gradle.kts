@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "co.anbora.labs"
-version = "1.2.4"
+version = "1.3.0"
 
 repositories {
     mavenCentral()
@@ -17,7 +17,7 @@ repositories {
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     version.set("LATEST-EAP-SNAPSHOT")
-    type.set("IU") // Target IDE Platform
+    type.set("IC") // Target IDE Platform
 
     plugins.set(listOf())
 }
@@ -33,7 +33,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("231")
+        sinceBuild.set("223")
         untilBuild.set("231.*")
         changeNotes.set(file("src/main/html/change-notes.html").inputStream().readBytes().toString(Charsets.UTF_8))
         pluginDescription.set(file("src/main/html/description.html").inputStream().readBytes().toString(Charsets.UTF_8))
