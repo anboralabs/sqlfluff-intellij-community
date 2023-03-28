@@ -71,7 +71,7 @@ sealed class Linter {
     }
 
     private val PATTERN = Pattern.compile("L:\\s+(\\d+)\\s+\\|\\s+P:\\s+(\\d+)\\s+\\|\\s+(.+)\\s+\\|\\s+(.+)")
-    private val WARNING_PATTERN = Pattern.compile("L(\\d+)")
+    private val WARNING_PATTERN = Pattern.compile("(\\w+\\d+)")
 
     private fun parseLintResult(
         document: Document,
