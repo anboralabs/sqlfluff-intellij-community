@@ -3,14 +3,18 @@ fun properties(key: String) = project.findProperty(key).toString()
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.7.10"
-    id("org.jetbrains.intellij") version "1.13.3"
+    id("org.jetbrains.intellij") version "1.13.4-SNAPSHOT"
 }
 
 group = "co.anbora.labs"
-version = "1.3.4"
+version = "1.3.5"
 
 repositories {
     mavenCentral()
+}
+
+dependencies {
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
 }
 
 // Configure Gradle IntelliJ Plugin
