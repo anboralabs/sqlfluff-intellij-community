@@ -7,6 +7,8 @@ import co.anbora.labs.sqlfluff.ide.settings.Settings.DEFAULT_ARGUMENTS
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_PYTHON
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT_ARGUMENTS
+import co.anbora.labs.sqlfluff.lint.issue.IssueItem
+import co.anbora.labs.sqlfluff.lint.issue.IssueMapper
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
@@ -48,7 +50,7 @@ sealed class Linter {
         val args = buildCommandLineArgs(
             Settings[OPTION_KEY_PYTHON],
             Settings[OPTION_KEY_SQLLINT],
-            arguments,
+            arguments + Settings.DEFAULT_FORMAT,
             file,
             document
         )
@@ -62,36 +64,37 @@ sealed class Linter {
         args: SqlFluffLintRunner.Param
     ): List<LinterExternalAnnotator.Error> {
         val result = SqlFluffLintRunner.runLint(args)
-        return result.output.mapNotNull {
-            parseLintResult(
-                document,
-                it
-            )
+        return result.output.asSequence().map {
+            IssueMapper.apply(it)
         }
+            .flatten()
+            .mapNotNull { it.violations }
+            .flatten()
+            .mapNotNull {
+                parseLintResult(
+                    document,
+                    it
+                )
+            }.toList()
     }
 
-    private val PATTERN = Pattern.compile("L:\\s+(\\d+)\\s+\\|\\s+P:\\s+(\\d+)\\s+\\|\\s+(.+)\\s+\\|\\s+(.+)")
     private val WARNING_PATTERN = Pattern.compile("(\\w+\\d+)")
 
     private fun parseLintResult(
         document: Document,
-        line: String?
+        line: IssueItem
     ): LinterExternalAnnotator.Error? {
 
-        val matcher = PATTERN.matcher(line)
-        if (!matcher.matches()) {
-            return null
-        }
-        var lineNumber = matcher.group(1).toInt(10)
+        var lineNumber = line.lineNo ?: 0
         val lineCount = document.lineCount
         if (0 == lineCount) {
             return null
         }
         lineNumber = if (lineNumber > 0) lineNumber - 1 else lineNumber
 
-        val position = matcher.group(2).toInt(10)
-        val errorType = matcher.group(3)
-        val errorDescription = matcher.group(4)
+        val position = line.linePos ?: 0
+        val errorType = line.code.orEmpty()
+        val errorDescription = line.description
 
         val lineStartOffset = document.getLineStartOffset(lineNumber)
 
