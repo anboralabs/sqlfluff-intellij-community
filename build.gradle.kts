@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "co.anbora.labs"
-version = "1.3.5"
+version = "1.3.6"
 
 repositories {
     mavenCentral()
@@ -37,8 +37,8 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("223")
-        untilBuild.set("231.*")
+        sinceBuild.set("222")
+        untilBuild.set("232.*")
         changeNotes.set(file("src/main/html/change-notes.html").inputStream().readBytes().toString(Charsets.UTF_8))
         pluginDescription.set(file("src/main/html/description.html").inputStream().readBytes().toString(Charsets.UTF_8))
     }
