@@ -22,6 +22,9 @@
                          id="SqlFluffInspection"
                          level="WEAK WARNING"
                          enabledByDefault="true"/>
+
+        <notificationGroup id="SqlFluffCommunityNotification" displayType="BALLOON"/>
+
         <pluginReplacement implementation="co.anbora.labs.sqlfluff.ide.replacement.LinterPluginReplacement"/>
     </extensions>
 </idea-plugin>

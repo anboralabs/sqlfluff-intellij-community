@@ -78,7 +78,7 @@ class GlobalConfigView(val changeListener: Consumer<LinterConfig>) {
     }
 
     fun reset() {
-        selectLinter(LinterConfig.valueOf(Settings[SELECTED_LINTER]))
+        selectLinter(LinterConfig.getOrDefault(Settings[SELECTED_LINTER]))
     }
 
     fun apply() {

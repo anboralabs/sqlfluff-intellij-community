@@ -14,21 +14,21 @@ object SqlFluffLintRunner {
     private val log: Logger = Logger.getInstance(SqlFluffLintRunner::class.java)
 
     private val TIME_OUT = TimeUnit.SECONDS.toMillis(120L).toInt()
-    private const val FILES_NOT_FOUND = 66
+    private const val OK = 0
 
-    fun runLint(params: Param): Result {
+    fun runLint(projectPath: String?, params: Param): Result {
         val result = Result()
         try {
-            val out: ProcessOutput = lint(params)
+            val out: ProcessOutput = lint(projectPath, params)
             result.errorOutput = out.stderr
             try {
-                if (out.exitCode != FILES_NOT_FOUND) {
+                if (isOkExecution(out)) {
                     result.output = out.stdoutLines
                     result.isOk = true
                 }
             } catch (e: Exception) {
-                log.error(out.stdout)
-                result.errorOutput = out.stdout
+                val output = out.stdout.replace("User Error: ", "")
+                result.errorOutput = output
             }
         } catch (e: Exception) {
             result.errorOutput = e.toString()
@@ -36,17 +36,28 @@ object SqlFluffLintRunner {
         return result
     }
 
+    private fun isOkExecution(out: ProcessOutput): Boolean {
+        val okResult = out.exitCode == OK
+        if (!okResult) {
+            throw IllegalArgumentException()
+        }
+        return okResult
+    }
+
     class Result {
         var isOk = false
         var output: List<String> = listOf()
         var errorOutput: String? = null
+
+        fun hasErrors(): Boolean = errorOutput != null
     }
 
     @Throws(ExecutionException::class)
-    fun lint(params: Param): ProcessOutput {
+    fun lint(projectPath: String?, params: Param): ProcessOutput {
         val commandLine = GeneralCommandLine()
         commandLine
             .withCharset(StandardCharsets.UTF_8)
+            .withWorkDirectory(projectPath)
         commandLine.exePath = params.execPath
 
         params.extraArgs.forEach {

@@ -57,7 +57,7 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.Collect
 
         log.info("running sqlfluff Linter external annotator for $collectedInfo")
 
-        val linterType = LinterConfig.valueOf(Settings[Settings.SELECTED_LINTER])
+        val linterType = LinterConfig.getOrDefault(Settings[Settings.SELECTED_LINTER])
 
         return linterType.lint(file, collectedInfo.document)
     }

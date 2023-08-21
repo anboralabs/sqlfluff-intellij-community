@@ -30,4 +30,13 @@ enum class LinterConfig(protected val linter: Linter) {
         document: Document
     ): List<LinterExternalAnnotator.Error>
 
+    companion object {
+        fun getOrDefault(enum: String): LinterConfig {
+            return try {
+                LinterConfig.valueOf(enum)
+            } catch (ex: Exception) {
+                DISABLED
+            }
+        }
+    }
 }

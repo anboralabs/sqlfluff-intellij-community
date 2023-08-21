@@ -1,6 +1,7 @@
 package co.anbora.labs.sqlfluff.lint
 
 import co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator
+import co.anbora.labs.sqlfluff.ide.notifications.LinterErrorNotification
 import co.anbora.labs.sqlfluff.ide.runner.SqlFluffLintRunner
 import co.anbora.labs.sqlfluff.ide.settings.Settings
 import co.anbora.labs.sqlfluff.ide.settings.Settings.DEFAULT_ARGUMENTS
@@ -16,6 +17,8 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
 import java.util.regex.Pattern
 
+const val SQL_FLUFF = "sqlfluff"
+
 sealed class Linter {
 
     protected val LOGGER: Logger = Logger.getInstance(
@@ -27,6 +30,15 @@ sealed class Linter {
     open fun lint(
         file: PsiFile,
         document: Document
+    ): List<LinterExternalAnnotator.Error> {
+
+        return lint(file, document, file.project.basePath)
+    }
+
+    fun lint(
+        file: PsiFile,
+        document: Document,
+        projectPath: String? = file.project.basePath
     ): List<LinterExternalAnnotator.Error> {
 
         val vFile = file.virtualFile
@@ -55,15 +67,31 @@ sealed class Linter {
             document
         )
 
-        return runLinter(file, document, args)
+        return runLinter(file, document, projectPath, args)
     }
 
     private fun runLinter(
         file: PsiFile,
         document: Document,
+        projectPath: String?,
         args: SqlFluffLintRunner.Param
     ): List<LinterExternalAnnotator.Error> {
-        val result = SqlFluffLintRunner.runLint(args)
+        val result = SqlFluffLintRunner.runLint(projectPath, args)
+
+        if (result.hasErrors()) {
+            LinterErrorNotification(result.errorOutput.orEmpty())
+                .withTitle("$SQL_FLUFF:")
+                .show()
+            return emptyList()
+        }
+
+        return errors(result, document)
+    }
+
+    private fun errors(
+        result: SqlFluffLintRunner.Result,
+        document: Document
+    ): List<LinterExternalAnnotator.Error> {
         return result.output.asSequence().map {
             IssueMapper.apply(it)
         }
@@ -98,7 +126,7 @@ sealed class Linter {
 
         val lineStartOffset = document.getLineStartOffset(lineNumber)
 
-        val errorMessage = "sqlfluff [$errorType]: $errorDescription"
+        val errorMessage = "$SQL_FLUFF [$errorType]: $errorDescription"
 
         val initialPosition = if (position > 0) position - 1 else 0
 
