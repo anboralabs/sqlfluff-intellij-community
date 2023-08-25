@@ -16,9 +16,10 @@ object CustomLinter: Linter() {
         file: PsiFile,
         document: Document
     ): SqlFluffLintRunner.Param {
+        val nioFile = file.virtualFile.toNioPath()
         return SqlFluffLintRunner.Param(
             execPath = python,
-            extraArgs = listOf(lint, LINT_COMMAND, file.virtualFile.path, *lintOptions.split(" ").toTypedArray())
+            extraArgs = listOf(lint, LINT_COMMAND, nioFile.pathString, *lintOptions.split(" ").toTypedArray())
         )
     }
 }
