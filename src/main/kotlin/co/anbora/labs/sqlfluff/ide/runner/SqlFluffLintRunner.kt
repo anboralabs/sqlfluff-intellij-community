@@ -14,7 +14,11 @@ object SqlFluffLintRunner {
     private val log: Logger = Logger.getInstance(SqlFluffLintRunner::class.java)
 
     private val TIME_OUT = TimeUnit.SECONDS.toMillis(120L).toInt()
-    private const val OK = 0
+    private const val SUCCESS_NO_ISSUES_FOUND = 0
+    private const val SUCCESS_ISSUES_FOUND = 1
+    private const val ERROR_OCCURRED = 2
+
+    private val successCode = setOf(SUCCESS_NO_ISSUES_FOUND, SUCCESS_ISSUES_FOUND)
 
     fun runLint(projectPath: String?, params: Param): Result {
         val result = Result()
@@ -37,7 +41,7 @@ object SqlFluffLintRunner {
     }
 
     private fun isOkExecution(out: ProcessOutput): Boolean {
-        val okResult = out.exitCode == OK
+        val okResult = out.exitCode in successCode
         if (!okResult) {
             throw IllegalArgumentException()
         }
@@ -49,7 +53,7 @@ object SqlFluffLintRunner {
         var output: List<String> = listOf()
         var errorOutput: String? = null
 
-        fun hasErrors(): Boolean = errorOutput != null
+        fun hasErrors(): Boolean = !isOk
     }
 
     @Throws(ExecutionException::class)
