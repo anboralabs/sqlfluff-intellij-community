@@ -16,12 +16,9 @@ object CustomLinter: Linter() {
         file: PsiFile,
         document: Document
     ): SqlFluffLintRunner.Param {
-        val nioFile = file.virtualFile.toNioPath()
-        val tempFile = Files.createTempFile(null, ".${nioFile.extension}")
-        Files.write(tempFile, document.text.toByteArray()) //hack trick because virtual file has the changes and real file no
         return SqlFluffLintRunner.Param(
             execPath = python,
-            extraArgs = listOf(lint, LINT_COMMAND, tempFile.pathString, *lintOptions.split(" ").toTypedArray())
+            extraArgs = listOf(lint, LINT_COMMAND, file.virtualFile.path, *lintOptions.split(" ").toTypedArray())
         )
     }
 }
