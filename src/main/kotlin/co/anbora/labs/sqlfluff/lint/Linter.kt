@@ -10,11 +10,11 @@ import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT
 import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT_ARGUMENTS
 import co.anbora.labs.sqlfluff.lint.issue.IssueItem
 import co.anbora.labs.sqlfluff.lint.issue.IssueMapper
+import co.anbora.labs.sqlfluff.ide.fs.LinterVirtualFile
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiFile
 import java.util.regex.Pattern
 
 const val SQL_FLUFF = "sqlfluff"
@@ -27,30 +27,9 @@ sealed class Linter {
 
     protected val LINT_COMMAND = "lint"
 
-    open fun lint(
-        file: PsiFile,
-        document: Document
-    ): List<LinterExternalAnnotator.Error> {
-
-        return lint(file, document, file.project.basePath)
-    }
-
     fun lint(
-        file: PsiFile,
-        document: Document,
-        projectPath: String? = file.project.basePath
+        virtualFile: LinterVirtualFile
     ): List<LinterExternalAnnotator.Error> {
-
-        val vFile = file.virtualFile
-        if (null == vFile) {
-            LOGGER.error("No valid file found!")
-            return emptyList()
-        }
-        val canonicalPath = vFile.canonicalPath
-        if (canonicalPath.isNullOrBlank()) {
-            LOGGER.error("Failed to get canonical path!")
-            return emptyList()
-        }
 
         // First time users will not have this Option set if they do not open the Settings
         // UI yet.
@@ -63,20 +42,17 @@ sealed class Linter {
             Settings[OPTION_KEY_PYTHON],
             Settings[OPTION_KEY_SQLLINT],
             arguments + Settings.DEFAULT_FORMAT,
-            file,
-            document
+            virtualFile
         )
 
-        return runLinter(file, document, projectPath, args)
+        return runLinter(virtualFile, args)
     }
 
     private fun runLinter(
-        file: PsiFile,
-        document: Document,
-        projectPath: String?,
+        virtualFile: LinterVirtualFile,
         args: SqlFluffLintRunner.Param
     ): List<LinterExternalAnnotator.Error> {
-        val result = SqlFluffLintRunner.runLint(projectPath, args)
+        val result = SqlFluffLintRunner.runLint(virtualFile.projectPath(), args)
 
         if (result.hasErrors()) {
             LinterErrorNotification(result.errorOutput.orEmpty())
@@ -85,7 +61,9 @@ sealed class Linter {
             return emptyList()
         }
 
-        return errors(result, document)
+        return errors(result, virtualFile.document()).also {
+            virtualFile.delete()
+        }
     }
 
     private fun errors(
@@ -148,7 +126,6 @@ sealed class Linter {
         python: String,
         lint: String,
         lintOptions: String,
-        file: PsiFile,
-        document: Document
+        virtualFile: LinterVirtualFile
     ): SqlFluffLintRunner.Param
 }

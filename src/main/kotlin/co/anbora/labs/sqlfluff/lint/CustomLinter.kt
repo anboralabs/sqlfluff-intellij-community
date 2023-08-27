@@ -1,10 +1,7 @@
 package co.anbora.labs.sqlfluff.lint
 
 import co.anbora.labs.sqlfluff.ide.runner.SqlFluffLintRunner
-import com.intellij.openapi.editor.Document
-import com.intellij.psi.PsiFile
-import java.nio.file.Files
-import kotlin.io.path.extension
+import co.anbora.labs.sqlfluff.ide.fs.LinterVirtualFile
 import kotlin.io.path.pathString
 
 object CustomLinter: Linter() {
@@ -13,13 +10,11 @@ object CustomLinter: Linter() {
         python: String,
         lint: String,
         lintOptions: String,
-        file: PsiFile,
-        document: Document
+        virtualFile: LinterVirtualFile
     ): SqlFluffLintRunner.Param {
-        val nioFile = file.virtualFile.toNioPath()
         return SqlFluffLintRunner.Param(
             execPath = python,
-            extraArgs = listOf(lint, LINT_COMMAND, nioFile.pathString, *lintOptions.split(" ").toTypedArray())
+            extraArgs = listOf(lint, LINT_COMMAND, virtualFile.canonicalPath().pathString, *lintOptions.split(" ").toTypedArray())
         )
     }
 }
