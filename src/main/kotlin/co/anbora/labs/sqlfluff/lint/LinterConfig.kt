@@ -1,33 +1,28 @@
 package co.anbora.labs.sqlfluff.lint
 
 import co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator
-import com.intellij.openapi.editor.Document
-import com.intellij.psi.PsiFile
+import co.anbora.labs.sqlfluff.ide.fs.LinterVirtualFile
 
 enum class LinterConfig(protected val linter: Linter) {
 
     DISABLED(DisabledLinter) {
         override fun lint(
-            file: PsiFile,
-            document: Document
-        ): List<LinterExternalAnnotator.Error> = linter.lint(file, document)
+            virtualFile: LinterVirtualFile
+        ): List<LinterExternalAnnotator.Error> = linter.lint(virtualFile)
     },
     GLOBAL(GlobalLinter) {
         override fun lint(
-            file: PsiFile,
-            document: Document
-        ): List<LinterExternalAnnotator.Error> = linter.lint(file, document)
+            virtualFile: LinterVirtualFile
+        ): List<LinterExternalAnnotator.Error> = linter.lint(virtualFile)
     },
     CUSTOM(CustomLinter) {
         override fun lint(
-            file: PsiFile,
-            document: Document
-        ): List<LinterExternalAnnotator.Error> = linter.lint(file, document)
+            virtualFile: LinterVirtualFile
+        ): List<LinterExternalAnnotator.Error> = linter.lint(virtualFile)
     };
 
     abstract fun lint(
-        file: PsiFile,
-        document: Document
+        virtualFile: LinterVirtualFile
     ): List<LinterExternalAnnotator.Error>
 
     companion object {
