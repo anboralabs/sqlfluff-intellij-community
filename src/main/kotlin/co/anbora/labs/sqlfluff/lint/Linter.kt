@@ -54,7 +54,7 @@ sealed class Linter {
     ): List<LinterExternalAnnotator.Error> {
         val result = SqlFluffLintRunner.runLint(virtualFile.projectPath(), args)
 
-        if (result.hasErrors()) {
+        if (result.hasErrors() || result.hasSystemErrors()) {
             LinterErrorNotification(result.errorOutput.orEmpty())
                 .withTitle("$SQL_FLUFF:")
                 .show()

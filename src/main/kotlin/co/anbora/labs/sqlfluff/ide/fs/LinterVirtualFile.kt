@@ -4,6 +4,8 @@ import com.intellij.openapi.editor.Document
 import com.intellij.psi.PsiFile
 import java.nio.file.Path
 
+const val VIRTUAL_FILE_PREFIX = "__sqlfluff_tmp_"
+
 interface LinterVirtualFile {
 
     fun isSqlFileType(): Boolean
