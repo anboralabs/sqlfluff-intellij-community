@@ -20,7 +20,7 @@ class LinterVirtualFileImpl(
 
     override fun createTempFile(): LinterVirtualFileImpl {
         val nioFile = parent.toNioPath()
-        tempFile = Files.createTempFile(nioFile.parent, "__sqlfluff_tmp_", ".${parent.extension}")
+        tempFile = Files.createTempFile(nioFile.parent, VIRTUAL_FILE_PREFIX, ".${parent.extension}")
         fileToDelete = tempFile.toFile().also {
             it.deleteOnExit()
         }

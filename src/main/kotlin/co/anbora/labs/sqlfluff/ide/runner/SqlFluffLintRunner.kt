@@ -54,6 +54,10 @@ object SqlFluffLintRunner {
         var errorOutput: String? = null
 
         fun hasErrors(): Boolean = !isOk
+
+        fun hasSystemErrors(): Boolean {
+            return errorOutput != null && !errorOutput.isNullOrEmpty()
+        }
     }
 
     @Throws(ExecutionException::class)
