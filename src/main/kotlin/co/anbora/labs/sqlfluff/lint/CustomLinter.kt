@@ -13,8 +13,8 @@ object CustomLinter: Linter() {
         virtualFile: LinterVirtualFile
     ): SqlFluffLintRunner.Param {
         return SqlFluffLintRunner.Param(
-            execPath = python,
-            extraArgs = listOf(lint, LINT_COMMAND, virtualFile.canonicalPath().pathString, *lintOptions.split(" ").toTypedArray())
+            execPath = lint,
+            extraArgs = listOf(LINT_COMMAND, virtualFile.canonicalPath().pathString, *lintOptions.split(" ").toTypedArray())
         )
     }
 }
