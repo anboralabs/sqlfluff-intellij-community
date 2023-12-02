@@ -3,11 +3,11 @@ fun properties(key: String) = project.findProperty(key).toString()
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.0"
-    id("org.jetbrains.intellij") version "1.16.0"
+    id("org.jetbrains.intellij") version "1.16.1"
 }
 
 group = "co.anbora.labs"
-version = "1.5.2"
+version = "1.5.3"
 
 repositories {
     mavenCentral()
