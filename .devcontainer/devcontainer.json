@@ -1,0 +1,10 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "jdkDistro": "jbr",
+      "version": "17.0.10"
+    },
+    "ghcr.io/devcontainers/features/desktop-lite:1": {}
+  }
+}
