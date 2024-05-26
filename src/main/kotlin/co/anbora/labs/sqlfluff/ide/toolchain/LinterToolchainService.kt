@@ -19,12 +19,12 @@ class LinterToolchainService: PersistentStateComponent<LinterToolchainService.To
     fun setToolchain(newToolchain: LinterToolchain) {
         toolchain = newToolchain
         state.toolchainLocation = newToolchain.homePath()
+        state.toolchainVersion = newToolchain.version()
     }
 
     fun toolchain(): LinterToolchain {
-        val currentLocation = state.toolchainLocation
-        if (toolchain == LinterToolchain.NULL && currentLocation.isNotEmpty()) {
-            setToolchain(LinterToolchain.fromPath(currentLocation))
+        if (toolchain == LinterToolchain.NULL && state.isValid()) {
+            setToolchain(LinterToolchain.fromPath(state.toolchainLocation))
         }
         return toolchain
     }
@@ -45,5 +45,11 @@ class LinterToolchainService: PersistentStateComponent<LinterToolchainService.To
     class ToolchainState {
         @Attribute("url")
         var toolchainLocation: String = ""
+        @Attribute("version")
+        var toolchainVersion: String = ""
+
+        fun isValid(): Boolean {
+            return toolchainVersion.isNotEmpty() && toolchainLocation.isNotEmpty()
+        }
     }
 }
