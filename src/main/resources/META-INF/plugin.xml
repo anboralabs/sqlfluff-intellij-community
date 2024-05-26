@@ -16,17 +16,44 @@
                 groupId="tools"
                 displayName="Sqlfluff Linter"
                 id="preference.SqlFluffLinterConfigurable"
-                instance="co.anbora.labs.sqlfluff.ide.settings.LinterSettings" />
+                instance="co.anbora.labs.sqlfluff.ide.settings.LinterProjectSettingsConfigurable" />
         <externalAnnotator language="" implementationClass="co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator"/>
         <localInspection implementationClass="co.anbora.labs.sqlfluff.ide.inspection.LinterInspection"
                          displayName="SqlFluff inspection"
                          groupName="Sql: line"
                          id="SqlFluffInspection"
                          level="WEAK WARNING"
+                         language=""
                          enabledByDefault="true"/>
 
-        <notificationGroup id="SqlFluffCommunityNotification" displayType="BALLOON"/>
+        <notificationGroup id="sql.fluff.notification" displayType="BALLOON"/>
 
-        <pluginReplacement implementation="co.anbora.labs.sqlfluff.ide.replacement.LinterPluginReplacement"/>
+        <applicationService serviceImplementation="co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState"/>
+        <applicationService serviceImplementation="co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService"/>
+
+        <postStartupActivity implementation="co.anbora.labs.sqlfluff.ide.startup.InitConfigFiles"/>
     </extensions>
+
+    <extensions defaultExtensionNs="co.anbora.labs.sqlfluff">
+        <discovery implementation="co.anbora.labs.sqlfluff.ide.discovery.flavor.LinterWinDiscovery" />
+        <discovery implementation="co.anbora.labs.sqlfluff.ide.discovery.flavor.LinterUnixDiscovery" />
+        <toolchain implementation="co.anbora.labs.sqlfluff.ide.toolchain.flavor.LinterWinPathToolchainFlavor"/>
+        <toolchain implementation="co.anbora.labs.sqlfluff.ide.toolchain.flavor.LinterUnixPathToolchainFlavor"/>
+        <toolchain implementation="co.anbora.labs.sqlfluff.ide.toolchain.flavor.LinterSysPathToolchainFlavor"/>
+    </extensions>
+
+    <extensionPoints>
+        <extensionPoint interface="co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainFlavor"
+                        dynamic="true" name="toolchain"/>
+        <extensionPoint interface="co.anbora.labs.sqlfluff.ide.discovery.LinterDiscoveryFlavor"
+                        dynamic="true" name="discovery"/>
+    </extensionPoints>
+
+    <actions>
+        <action
+            id="co.anbora.labs.sqlfluff.ide.actions.Setup"
+            class="co.anbora.labs.sqlfluff.ide.actions.Setup"
+            text="Setup"
+        />
+    </actions>
 </idea-plugin>
