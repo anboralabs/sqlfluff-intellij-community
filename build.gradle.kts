@@ -23,7 +23,7 @@ intellij {
     version.set("2024.1.1")
     type.set("IC") // Target IDE Platform
 
-    plugins.set(listOf())
+    plugins.set(listOf("com.jetbrains.plugins.ini4idea:241.15989.22"))
 }
 
 tasks {
@@ -37,8 +37,10 @@ tasks {
         sourceCompatibility = "17"
         targetCompatibility = "17"
     }
+
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         kotlinOptions.jvmTarget = "17"
+        kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all")
     }
 
     patchPluginXml {

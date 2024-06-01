@@ -6,10 +6,20 @@
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.jetbrains.plugins.ini4idea</depends>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
+        <fileType name="sqlfluff config" implementationClass="co.anbora.labs.sqlfluff.file.LinterFileType"
+                  fieldName="INSTANCE" language="sql_fluff_config" patterns=".sqlfluff"/>
+        <lang.parserDefinition language="sql_fluff_config"
+                               implementationClass="co.anbora.labs.sqlfluff.lang.parser.LinterParserDefinition"/>
+        <lang.syntaxHighlighterFactory language="sql_fluff_config"
+                                       implementationClass="co.anbora.labs.sqlfluff.ide.highlighter.LinterSyntaxHighlighterFactory"/>
+
+        <colorSettingsPage implementation="co.anbora.labs.sqlfluff.ide.highlighter.LinterColorSettingPage"/>
+
         <treeStructureProvider
                 implementation="co.anbora.labs.sqlfluff.ide.projectView.TempSQLTreeStructureProvider"/>
         <projectConfigurable
