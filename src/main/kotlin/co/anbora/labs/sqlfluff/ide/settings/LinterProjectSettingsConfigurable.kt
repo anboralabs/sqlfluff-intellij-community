@@ -2,6 +2,8 @@ package co.anbora.labs.sqlfluff.ide.settings
 
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchain
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService
+import co.anbora.labs.sqlfluff.lint.LinterConfig
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.ShowSettingsUtil
@@ -14,6 +16,9 @@ class LinterProjectSettingsConfigurable(private val project: Project) : Configur
     private val mainPanel: DialogPanel
     private val model = LinterProjectSettingsForm.Model(
         homeLocation = "",
+        linter = LinterConfig.GLOBAL,
+        configPath = "",
+        executeWhenSave = true
     )
     private val settingsForm = LinterProjectSettingsForm(project, model)
 
@@ -30,6 +35,9 @@ class LinterProjectSettingsConfigurable(private val project: Project) : Configur
 
         val settings = toolchainSettings
         return model.homeLocation != settings.toolchainLocation
+                || model.executeWhenSave != settings.executeWhenSave
+                || model.linter != settings.linter
+                || model.configPath != settings.configLocation
     }
 
     override fun apply() {
@@ -39,6 +47,13 @@ class LinterProjectSettingsConfigurable(private val project: Project) : Configur
 
         val settings = toolchainSettings
         settings.setToolchain(LinterToolchain.fromPath(model.homeLocation))
+        settings.setLinterSettingOption(
+            LinterToolchainService.LinterConfigSettings(
+                model.linter,
+                model.configPath,
+                model.executeWhenSave
+            )
+        )
     }
 
     private fun validateSettings() {
@@ -53,6 +68,9 @@ class LinterProjectSettingsConfigurable(private val project: Project) : Configur
 
         with(model) {
             homeLocation = settings.toolchainLocation
+            linter = settings.linter
+            configPath = settings.configLocation
+            executeWhenSave = settings.executeWhenSave
         }
 
         settingsForm.reset()

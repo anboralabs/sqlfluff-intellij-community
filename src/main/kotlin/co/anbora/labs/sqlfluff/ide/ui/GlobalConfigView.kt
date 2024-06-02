@@ -1,12 +1,10 @@
 package co.anbora.labs.sqlfluff.ide.ui
 
-import co.anbora.labs.sqlfluff.ide.settings.Settings
-import co.anbora.labs.sqlfluff.ide.settings.Settings.SELECTED_LINTER
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
 import co.anbora.labs.sqlfluff.lint.LinterConfig
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.util.ui.FormBuilder
-import java.util.Objects
 import java.util.function.Consumer
 import javax.swing.ButtonGroup
 import javax.swing.JPanel
@@ -58,14 +56,6 @@ class GlobalConfigView(val changeListener: Consumer<LinterConfig>) {
         return panel
     }
 
-    fun selectedLinterConfig(): LinterConfig {
-        return when {
-            useGlobalLint.isSelected -> LinterConfig.GLOBAL
-            useManualLint.isSelected -> LinterConfig.CUSTOM
-            else -> LinterConfig.DISABLED
-        }
-    }
-
     fun selectLinter(linter: LinterConfig) {
         useGlobalLint.isSelected = LinterConfig.GLOBAL == linter
         useManualLint.isSelected = LinterConfig.CUSTOM == linter
@@ -73,16 +63,8 @@ class GlobalConfigView(val changeListener: Consumer<LinterConfig>) {
         changeListener.accept(linter)
     }
 
-    fun isModified(): Boolean {
-        return !Objects.equals(selectedLinterConfig().name, Settings[SELECTED_LINTER])
-    }
-
     fun reset() {
-        selectLinter(LinterConfig.getOrDefault(Settings[SELECTED_LINTER]))
+        val settings = toolchainSettings
+        selectLinter(settings.linter)
     }
-
-    fun apply() {
-        Settings[SELECTED_LINTER] = selectedLinterConfig().name
-    }
-
 }

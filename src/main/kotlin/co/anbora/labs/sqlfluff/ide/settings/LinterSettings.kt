@@ -27,7 +27,7 @@ import javax.swing.JTextField
 import javax.swing.event.DocumentEvent
 import javax.swing.plaf.basic.BasicComboBoxEditor
 
-class LinterSettings: Configurable {
+class LinterSettings {
 
     private lateinit var pythonPathField: TextFieldWithHistoryWithBrowseButton
     private lateinit var linterPathField: TextFieldWithHistoryWithBrowseButton
@@ -87,37 +87,6 @@ class LinterSettings: Configurable {
 
     fun getChangedValueColor(): Color? = findColorByKey("TextField.foreground")
 
-    override fun getDisplayName(): String = "Sqlfluff"
-
-    override fun getHelpTopic(): String? = null
-
-    override fun createComponent(): JComponent {
-
-        val lintFieldsWrapperBuilder = FormBuilder.createFormBuilder()
-            .setHorizontalGap(UIUtil.DEFAULT_HGAP)
-            .setVerticalGap(UIUtil.DEFAULT_VGAP)
-
-        lintFieldsWrapperBuilder.addLabeledComponent("Python path:", pythonPathField)
-            .addLabeledComponent("sqlfluff.py path:", linterPathField)
-            .addLabeledComponent("Arguments: ", argumentsField)
-
-        val builder = FormBuilder.createFormBuilder()
-            .setHorizontalGap(UIUtil.DEFAULT_HGAP)
-            .setVerticalGap(UIUtil.DEFAULT_VGAP)
-
-        val panel = builder
-            .addComponent(globalConfigView.getComponent())
-            .addComponent(lintFieldsWrapperBuilder.panel)
-            .addSeparator(4)
-            .addVerticalGap(4)
-            .panel
-
-        val centerPanel = SwingHelper.wrapWithHorizontalStretch(panel)
-        centerPanel.border = BorderFactory.createEmptyBorder(5, 0, 0, 0)
-
-        return centerPanel
-    }
-
     private fun createTextFieldWithHistory(defaultValues: NotNullProducer<List<String>>): TextFieldWithHistoryWithBrowseButton {
         val textFieldWithHistoryWithBrowseButton = TextFieldWithHistoryWithBrowseButton()
         val textFieldWithHistory = textFieldWithHistoryWithBrowseButton.childComponent
@@ -140,26 +109,5 @@ class LinterSettings: Configurable {
         pythonPathField.isEnabled = LinterConfig.CUSTOM == it
         linterPathField.isEnabled = LinterConfig.CUSTOM == it
         argumentsField.isEnabled = LinterConfig.GLOBAL == it || LinterConfig.CUSTOM == it
-    }
-
-    override fun isModified(): Boolean {
-        return !Objects.equals(pythonPathField.text, Settings[OPTION_KEY_PYTHON])
-                || !Objects.equals(linterPathField.text, Settings[OPTION_KEY_SQLLINT])
-                || !Objects.equals(argumentsField.text, Settings[OPTION_KEY_SQLLINT_ARGUMENTS])
-                || globalConfigView.isModified()
-    }
-
-    override fun reset() {
-        pythonPathField.text = Settings[OPTION_KEY_PYTHON]
-        linterPathField.text = Settings[OPTION_KEY_SQLLINT]
-        argumentsField.text = Settings[OPTION_KEY_SQLLINT_ARGUMENTS]
-        globalConfigView.reset()
-    }
-
-    override fun apply() {
-        Settings[OPTION_KEY_PYTHON] = pythonPathField.text
-        Settings[OPTION_KEY_SQLLINT] = linterPathField.text
-        Settings[OPTION_KEY_SQLLINT_ARGUMENTS] = argumentsField.text
-        globalConfigView.apply()
     }
 }

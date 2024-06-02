@@ -6,6 +6,7 @@ import com.intellij.openapi.application.AppUIExecutor
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.fileChooser.FileChooser
+import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.ComboBoxWithWidePopup
 import com.intellij.openapi.ui.ComponentWithBrowseButton
@@ -17,8 +18,10 @@ import java.nio.file.Path
 import javax.swing.plaf.basic.BasicComboBoxEditor
 import kotlin.io.path.pathString
 
-class LinterToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
-    ComponentWithBrowseButton<ComboBoxWithWidePopup<Path>>(ComboBoxWithWidePopup(), null) {
+class LinterToolchainPathChoosingComboBox(
+    descriptor: FileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor(),
+    onTextChanged: () -> Unit = {}
+): ComponentWithBrowseButton<ComboBoxWithWidePopup<Path>>(ComboBoxWithWidePopup(), null) {
 
     private val editor: BasicComboBoxEditor = object : BasicComboBoxEditor() {
         override fun createEditorComponent(): ExtendableTextField = ExtendableTextField()
@@ -42,7 +45,6 @@ class LinterToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
         childComponent.isEditable = true
 
         addActionListener {
-            val descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
             FileChooser.chooseFile(descriptor, null, null) { file ->
                 childComponent.selectedItem = file.pathAsPath
             }

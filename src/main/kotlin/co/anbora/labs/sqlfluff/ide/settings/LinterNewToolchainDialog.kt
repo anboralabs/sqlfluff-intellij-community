@@ -121,16 +121,16 @@ class LinterNewToolchainDialog(private val toolchainFilter: Condition<Path>, pro
 
     private fun ValidationInfoBuilder.validateToolchainPath(): ValidationInfo? {
         if (model.toolchainLocation.isEmpty()) {
-            return error("Ngrok location is required")
+            return error("Sqlfluff location is required")
         }
 
         val toolchainPath = model.toolchainLocation.toPath()
         if (!toolchainPath.exists()) {
-            return error("Ngrok location is invalid, $toolchainPath not exist")
+            return error("Sqlfluff location is invalid, $toolchainPath not exist")
         }
 
         if (!toolchainPath.isDirectory()) {
-            return error("Ngrok location must be a directory")
+            return error("Sqlfluff location must be a directory")
         }
 
         val version = LinterConfigurationUtil.guessToolchainVersion(model.toolchainLocation)

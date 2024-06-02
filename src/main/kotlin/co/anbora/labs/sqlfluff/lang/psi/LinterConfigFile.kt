@@ -17,6 +17,14 @@ import javax.swing.Icon
 class LinterConfigFile(
     viewProvider: FileViewProvider
 ): PsiFileBase(viewProvider, LinterConfigLanguage), IniPsiElement {
+
+    companion object {
+        const val KEY_DIALECT = "dialect"
+        const val KEY_TEMPLATER = "templater"
+        const val DEFAULT_DIALECT = "ansi"
+        const val DEFAULT_TEMPLATER = "raw"
+    }
+
     override fun getFileType(): FileType = LinterFileType
 
     override fun getPresentation(): ItemPresentation {
@@ -40,5 +48,13 @@ class LinterConfigFile(
             }
             CachedValueProvider.Result.create(properties, this)
         }
+    }
+
+    fun getTemplater(): String {
+        return getProperties()[KEY_TEMPLATER] ?: DEFAULT_TEMPLATER
+    }
+
+    fun getDialect(): String {
+        return getProperties()[KEY_DIALECT] ?: DEFAULT_DIALECT
     }
 }
