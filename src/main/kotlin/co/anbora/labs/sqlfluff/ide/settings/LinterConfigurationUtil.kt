@@ -69,7 +69,7 @@ object LinterConfigurationUtil {
             val future = ApplicationManager.getApplication().executeOnPooledThread {
                 handler.waitFor()
             }
-            future.get(500, TimeUnit.MILLISECONDS)
+            future.get(1000, TimeUnit.MILLISECONDS)
         } catch (e: ExecutionException) {
             LOG.warn("Can't execute command for getting sqlfluff toolchain version", e)
         } catch (e: TimeoutException) {

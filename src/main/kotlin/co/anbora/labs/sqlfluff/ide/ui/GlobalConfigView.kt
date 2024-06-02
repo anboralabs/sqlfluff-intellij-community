@@ -24,8 +24,8 @@ class GlobalConfigView(val changeListener: Consumer<LinterConfig>) {
     private fun createUI() {
         val buttonGroup = ButtonGroup()
         disableLint = JBRadioButton("Disable linter")
-        useGlobalLint = JBRadioButton("Use sqlfluff global (Recommended)")
-        useManualLint = JBRadioButton("Use sqlfluff manual")
+        useGlobalLint = JBRadioButton("Use default .sqlfluff")
+        useManualLint = JBRadioButton("Use project .sqlfluff (Recommended)")
 
         buttonGroup.add(disableLint)
         buttonGroup.add(useGlobalLint)

@@ -8,7 +8,7 @@ import javax.swing.Icon
 
 object LinterFileType: LanguageFileType(LinterConfigLanguage) {
 
-    private const val EXTENSION = "sqlfluff"
+    const val EXTENSION = ".sqlfluff"
 
     override fun getName(): String = LANGUAGE_NAME
 
