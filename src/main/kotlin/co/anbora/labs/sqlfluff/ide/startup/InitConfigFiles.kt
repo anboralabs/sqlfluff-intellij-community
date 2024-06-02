@@ -21,7 +21,7 @@ class InitConfigFiles: ProjectActivity {
         }
 
         val toolchainSettings = LinterToolchainService.toolchainSettings
-        if (!toolchainSettings.toolchain().isValid()) {
+        if (!toolchainSettings.cachedToolchain().isValid()) {
             val notification = LinterNotifications.createNotification(
                 "Linter",
                 "Please setup sqlfluff",

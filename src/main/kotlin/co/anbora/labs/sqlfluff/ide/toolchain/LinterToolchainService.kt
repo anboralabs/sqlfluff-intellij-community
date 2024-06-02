@@ -29,6 +29,13 @@ class LinterToolchainService: PersistentStateComponent<LinterToolchainService.To
         return toolchain
     }
 
+    fun cachedToolchain(): LinterToolchain {
+        if (toolchain == LinterToolchain.NULL && state.isValid()) {
+            setToolchain(LinterToolchain.fromState(state))
+        }
+        return toolchain
+    }
+
     fun isNotSet(): Boolean = toolchain == LinterToolchain.NULL
 
     override fun getState() = state

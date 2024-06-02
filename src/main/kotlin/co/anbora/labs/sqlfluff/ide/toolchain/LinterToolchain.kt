@@ -14,6 +14,20 @@ interface LinterToolchain {
     fun isValid(): Boolean
 
     companion object {
+
+        fun fromState(state: LinterToolchainService.ToolchainState?): LinterToolchain {
+            if (state == null) {
+                return NULL
+            }
+
+            val homePath = state.toolchainLocation
+
+            val virtualFileManager = VirtualFileManager.getInstance()
+            val rootDir = virtualFileManager.findFileByNioPath(Path.of(homePath)) ?: return NULL
+
+            return LinterLocalToolchain(state.toolchainVersion, rootDir)
+        }
+
         fun fromPath(homePath: String): LinterToolchain {
             if (homePath == "") {
                 return NULL

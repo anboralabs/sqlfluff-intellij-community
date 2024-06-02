@@ -2,7 +2,6 @@ package co.anbora.labs.sqlfluff.ide.settings
 
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchain
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.ShowSettingsUtil
@@ -10,7 +9,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import javax.swing.JComponent
 
-class LinterProjectSettingsConfigurable(private val project: Project) : Configurable, Disposable {
+class LinterProjectSettingsConfigurable(private val project: Project) : Configurable {
 
     private val mainPanel: DialogPanel
     private val model = LinterProjectSettingsForm.Model(
@@ -20,8 +19,6 @@ class LinterProjectSettingsConfigurable(private val project: Project) : Configur
 
     init {
         mainPanel = settingsForm.createComponent()
-
-        mainPanel.registerValidators(this)
     }
 
     override fun createComponent(): JComponent = mainPanel
@@ -69,8 +66,5 @@ class LinterProjectSettingsConfigurable(private val project: Project) : Configur
         fun show(project: Project) {
             ShowSettingsUtil.getInstance().showSettingsDialog(project, LinterProjectSettingsConfigurable::class.java)
         }
-    }
-
-    override fun dispose() {
     }
 }

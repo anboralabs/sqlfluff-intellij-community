@@ -17,8 +17,16 @@
                                implementationClass="co.anbora.labs.sqlfluff.lang.parser.LinterParserDefinition"/>
         <lang.syntaxHighlighterFactory language="sql_fluff_config"
                                        implementationClass="co.anbora.labs.sqlfluff.ide.highlighter.LinterSyntaxHighlighterFactory"/>
-
         <colorSettingsPage implementation="co.anbora.labs.sqlfluff.ide.highlighter.LinterColorSettingPage"/>
+
+        <lang.foldingBuilder language="sql_fluff_config" implementationClass="ini4idea.folding.IniFoldingBuilder"/>
+        <lang.formatter language="sql_fluff_config" implementationClass="ini4idea.formatting.IniFormattingModelBuilder"/>
+
+        <lang.psiStructureViewFactory language="sql_fluff_config" implementationClass="co.anbora.labs.sqlfluff.ide.structureView.LinterStructureViewFactory"/>
+        <gotoSymbolContributor implementation="co.anbora.labs.sqlfluff.ide.symbolContributor.LinterGoToSymbolContributor"/>
+
+        <stubIndex implementation="co.anbora.labs.sqlfluff.ide.stub.LinterPropertyKeyIndex"/>
+        <lang.commenter language="sql_fluff_config" implementationClass="ini4idea.lang.IniCommenter"/>
 
         <treeStructureProvider
                 implementation="co.anbora.labs.sqlfluff.ide.projectView.TempSQLTreeStructureProvider"/>
