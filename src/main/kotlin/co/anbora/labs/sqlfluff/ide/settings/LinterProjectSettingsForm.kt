@@ -3,7 +3,6 @@ package co.anbora.labs.sqlfluff.ide.settings
 import co.anbora.labs.sqlfluff.LinterConfigLanguage.LANGUAGE_DEMO_TEXT
 import co.anbora.labs.sqlfluff.file.LinterFileType
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState
-import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainFlavor
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
 import co.anbora.labs.sqlfluff.ide.ui.ExecuteWhenView
 import co.anbora.labs.sqlfluff.ide.ui.GlobalConfigView
@@ -15,6 +14,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Condition
+import com.intellij.openapi.util.io.StreamUtil
 import com.intellij.psi.PsiFileFactory
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
@@ -24,15 +24,19 @@ import com.intellij.util.ui.UIUtil
 import java.nio.file.Path
 import java.util.function.Consumer
 import javax.swing.BorderFactory
+import kotlin.io.path.exists
+import kotlin.io.path.readText
 
 class LinterProjectSettingsForm(private val project: Project?, private val model: Model) {
 
-    private val linterConfigFile = PsiFileFactory.getInstance(project)
-        .createFileFromText(
-            "DUMMY.rules",
-            LinterFileType,
-            LANGUAGE_DEMO_TEXT
-        ) as LinterConfigFile
+    data class Model(
+        var homeLocation: String,
+        var linter: LinterConfig,
+        var configPath: String,
+        var executeWhenSave: Boolean
+    )
+
+    private val linterConfigFile = convertTextToPsi(LANGUAGE_DEMO_TEXT)
 
     private val globalConfigView = GlobalConfigView(disabledBehavior())
     private val executeView = ExecuteWhenView()
@@ -43,14 +47,20 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
 
     private val linterOptions = PropertyTable()
 
-    data class Model(
-        var homeLocation: String,
-        var linter: LinterConfig,
-        var configPath: String,
-        var executeWhenSave: Boolean
-    )
-
     private val toolchainChooser = ToolchainChooserComponent({ showNewToolchainDialog() }) { onSelect(it) }
+
+    init {
+        createUI()
+    }
+
+    private fun createUI() {
+        // setup initial location
+        model.homeLocation = toolchainChooser.selectedToolchain()?.location ?: ""
+
+        linterConfigPathField.addToolchainsAsync {
+            listOf(toolchainSettings.configLocation.toPath())
+        }
+    }
 
     private fun showNewToolchainDialog() {
         val dialog = LinterNewToolchainDialog(createFilterKnownToolchains(), project)
@@ -81,19 +91,6 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
         model.homeLocation = toolchainInfo.location
     }
 
-    init {
-        createUI()
-    }
-
-    private fun createUI() {
-        // setup initial location
-        model.homeLocation = toolchainChooser.selectedToolchain()?.location ?: ""
-
-        linterConfigPathField.addToolchainsAsync {
-            listOf(toolchainSettings.configLocation.toPath())
-        }
-    }
-
     private fun disabledBehavior(): Consumer<LinterConfig> = Consumer {
         model.linter = it
         linterOptions.disableWidget()
@@ -105,10 +102,23 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
                 linterOptions.setProperties(linterConfigFile.getProperties())
             }
             LinterConfig.CUSTOM -> {
-                linterOptions.setProperties(emptyMap())
+                val path = model.configPath.toPath()
+                if (path.exists()) {
+                    val text = model.configPath.toPath().readText()
+                    StreamUtil.convertSeparators(text)
+                    val file = convertTextToPsi(text)
+                    linterOptions.setProperties(file.getProperties())
+                }
             }
         }
     }
+
+    private fun convertTextToPsi(text: String) = PsiFileFactory.getInstance(project)
+        .createFileFromText(
+            ".sqlfluff",
+            LinterFileType,
+            text
+        ) as LinterConfigFile
 
     fun createComponent(): DialogPanel {
 
