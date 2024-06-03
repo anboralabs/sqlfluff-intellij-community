@@ -1,10 +1,11 @@
 package co.anbora.labs.sqlfluff.ide.annotator
 
-import co.anbora.labs.sqlfluff.ide.settings.Settings
-import co.anbora.labs.sqlfluff.lint.LinterConfig
-import co.anbora.labs.sqlfluff.lint.isSqlFileType
 import co.anbora.labs.sqlfluff.ide.fs.LinterVirtualFile
 import co.anbora.labs.sqlfluff.ide.fs.LinterVirtualFileImpl
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
+import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile.Companion.DEFAULT_DIALECT
+import co.anbora.labs.sqlfluff.lint.isSqlFileType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.lang.annotation.HighlightSeverity
@@ -23,6 +24,8 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterVirtualFile, Collection<L
         LinterExternalAnnotator::class.java
     )
 
+    private val linterType = toolchainSettings.linter
+
     override fun collectInformation(file: PsiFile): LinterVirtualFile? {
         val vfile = file.virtualFile
 
@@ -38,11 +41,21 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterVirtualFile, Collection<L
             return null
         }
 
-        return LinterVirtualFileImpl(document, vfile, file)
+        val configFile = linterType.configPsiFile(file.project, toolchainSettings.configLocation)
+        val dialect = configFile?.getDialect() ?: DEFAULT_DIALECT
+        val extension = "." + file.fileType.defaultExtension
+        val isSqlFileType = isSqlFileType(configFile, extension)
+
+        return LinterVirtualFileImpl(document, file, dialect, isSqlFileType)
     }
 
     override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean): LinterVirtualFile? {
-        if (!file.isSqlFileType()) {
+        val settings = toolchainSettings
+        val linter = settings.linter
+        val configFile = linter.configPsiFile(file.project, settings.configLocation)
+        val extension = "." + file.fileType.defaultExtension
+
+        if (!isSqlFileType(configFile, extension)) {
             return null
         }
 
@@ -58,10 +71,8 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterVirtualFile, Collection<L
 
         log.info("running sqlfluff Linter external annotator for $collectedInfo")
 
-        val linterType = LinterConfig.getOrDefault(Settings[Settings.SELECTED_LINTER])
-
         return when (collectedInfo) {
-            is LinterVirtualFile -> linterType.lint(collectedInfo.createTempFile())
+            is LinterVirtualFile -> linterType.lint(collectedInfo)
             else -> Collections.emptyList()
         }
     }

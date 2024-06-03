@@ -1,16 +1,12 @@
 package co.anbora.labs.sqlfluff.lint
 
 import co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator
+import co.anbora.labs.sqlfluff.ide.fs.LinterVirtualFile
 import co.anbora.labs.sqlfluff.ide.notifications.LinterErrorNotification
 import co.anbora.labs.sqlfluff.ide.runner.SqlFluffLintRunner
-import co.anbora.labs.sqlfluff.ide.settings.Settings
-import co.anbora.labs.sqlfluff.ide.settings.Settings.DEFAULT_ARGUMENTS
-import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_PYTHON
-import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT
-import co.anbora.labs.sqlfluff.ide.settings.Settings.OPTION_KEY_SQLLINT_ARGUMENTS
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService
 import co.anbora.labs.sqlfluff.lint.issue.IssueItem
 import co.anbora.labs.sqlfluff.lint.issue.IssueMapper
-import co.anbora.labs.sqlfluff.ide.fs.LinterVirtualFile
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
@@ -25,7 +21,7 @@ sealed class Linter {
         Linter::class.java
     )
 
-    protected val LINT_COMMAND = "lint"
+    private val DEFAULT_FORMAT = " --format json"
 
     fun lint(
         virtualFile: LinterVirtualFile
@@ -33,15 +29,11 @@ sealed class Linter {
 
         // First time users will not have this Option set if they do not open the Settings
         // UI yet.
-        var arguments = Settings[OPTION_KEY_SQLLINT_ARGUMENTS]
-        if (arguments.isBlank()) {
-            arguments = DEFAULT_ARGUMENTS
-        }
+        val dialectArgument = "--dialect ${virtualFile.dialect()}"
 
         val args = buildCommandLineArgs(
-            Settings[OPTION_KEY_PYTHON],
-            Settings[OPTION_KEY_SQLLINT],
-            arguments + Settings.DEFAULT_FORMAT,
+            LinterToolchainService.toolchainSettings.toolchain().binPath(),
+            dialectArgument + DEFAULT_FORMAT,
             virtualFile
         )
 
@@ -61,9 +53,7 @@ sealed class Linter {
             return emptyList()
         }
 
-        return errors(result, virtualFile.document()).also {
-            virtualFile.delete()
-        }
+        return errors(result, virtualFile.document())
     }
 
     private fun errors(
@@ -123,7 +113,6 @@ sealed class Linter {
     }
 
     abstract fun buildCommandLineArgs(
-        python: String,
         lint: String,
         lintOptions: String,
         virtualFile: LinterVirtualFile

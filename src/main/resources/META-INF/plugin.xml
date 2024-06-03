@@ -30,21 +30,12 @@
 
         <postStartupActivity implementation="co.anbora.labs.sqlfluff.ide.listener.LinterConfigProjectListener"/>
 
-        <treeStructureProvider
-                implementation="co.anbora.labs.sqlfluff.ide.projectView.TempSQLTreeStructureProvider"/>
         <projectConfigurable
                 groupId="tools"
                 displayName="Sqlfluff Linter"
                 id="preference.SqlFluffLinterConfigurable"
                 instance="co.anbora.labs.sqlfluff.ide.settings.LinterProjectSettingsConfigurable" />
         <externalAnnotator language="" implementationClass="co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator"/>
-        <localInspection implementationClass="co.anbora.labs.sqlfluff.ide.inspection.LinterInspection"
-                         displayName="SqlFluff inspection"
-                         groupName="Sql: line"
-                         id="SqlFluffInspection"
-                         level="WEAK WARNING"
-                         language=""
-                         enabledByDefault="true"/>
 
         <notificationGroup id="sql.fluff.notification" displayType="BALLOON"/>
 

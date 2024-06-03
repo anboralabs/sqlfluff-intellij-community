@@ -9,7 +9,7 @@ object Settings {
     val OPTION_KEY_SQLLINT = "sqlFluffLint"
     val OPTION_KEY_SQLLINT_ARGUMENTS = "sqlLintOptions"
     val DEFAULT_ARGUMENTS = "--dialect ansi"
-    val DEFAULT_FORMAT = " --format json"
+
     val SELECTED_LINTER = "selectedLinter"
 
     private val INSTANCE = PropertiesComponent.getInstance()

@@ -7,14 +7,17 @@ import kotlin.io.path.pathString
 object GlobalLinter: Linter() {
 
     override fun buildCommandLineArgs(
-        python: String,
         lint: String,
         lintOptions: String,
         virtualFile: LinterVirtualFile
     ): SqlFluffLintRunner.Param {
         return SqlFluffLintRunner.Param(
-            execPath = SQL_FLUFF,
-            extraArgs = listOf(LINT_COMMAND, virtualFile.canonicalPath().pathString, *lintOptions.split(" ").toTypedArray())
+            execPath = lint,
+            extraArgs = listOf(
+                LinterCommands.LINT_COMMAND,
+                virtualFile.canonicalPath().pathString,
+                *lintOptions.split(" ").toTypedArray()
+            )
         )
     }
 }

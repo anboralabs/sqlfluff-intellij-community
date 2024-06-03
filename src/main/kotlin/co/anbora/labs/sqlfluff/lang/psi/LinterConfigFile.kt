@@ -21,8 +21,10 @@ class LinterConfigFile(
     companion object {
         const val KEY_DIALECT = "dialect"
         const val KEY_TEMPLATER = "templater"
+        const val KEY_EXTENSIONS = "sql_file_exts"
         const val DEFAULT_DIALECT = "ansi"
         const val DEFAULT_TEMPLATER = "raw"
+        const val DEFAULT_EXTENSION = ".sql"
         const val DBT_TEMPLATER = "dbt"
     }
 
@@ -57,5 +59,9 @@ class LinterConfigFile(
 
     fun getDialect(): String {
         return getProperties()[KEY_DIALECT] ?: DEFAULT_DIALECT
+    }
+
+    fun extensions(): List<String> {
+        return getProperties()[KEY_EXTENSIONS]?.split(",") ?: listOf(DEFAULT_EXTENSION)
     }
 }

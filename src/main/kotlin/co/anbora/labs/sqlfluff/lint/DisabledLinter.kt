@@ -6,7 +6,6 @@ import co.anbora.labs.sqlfluff.ide.fs.LinterVirtualFile
 object DisabledLinter: Linter() {
 
     override fun buildCommandLineArgs(
-        python: String,
         lint: String,
         lintOptions: String,
         virtualFile: LinterVirtualFile
