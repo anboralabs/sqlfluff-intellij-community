@@ -23,6 +23,7 @@ class LinterConfigFile(
         const val KEY_TEMPLATER = "templater"
         const val DEFAULT_DIALECT = "ansi"
         const val DEFAULT_TEMPLATER = "raw"
+        const val DBT_TEMPLATER = "dbt"
     }
 
     override fun getFileType(): FileType = LinterFileType

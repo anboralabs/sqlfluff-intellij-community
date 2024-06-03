@@ -1,7 +1,5 @@
 package co.anbora.labs.sqlfluff.ide.settings
 
-import co.anbora.labs.sqlfluff.LinterConfigLanguage.LANGUAGE_DEMO_TEXT
-import co.anbora.labs.sqlfluff.file.LinterFileType
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
 import co.anbora.labs.sqlfluff.ide.ui.ExecuteWhenView
@@ -9,13 +7,12 @@ import co.anbora.labs.sqlfluff.ide.ui.GlobalConfigView
 import co.anbora.labs.sqlfluff.ide.ui.PropertyTable
 import co.anbora.labs.sqlfluff.ide.utils.toPath
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile
+import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile.Companion.DBT_TEMPLATER
 import co.anbora.labs.sqlfluff.lint.LinterConfig
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Condition
-import com.intellij.openapi.util.io.StreamUtil
-import com.intellij.psi.PsiFileFactory
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.FormBuilder
@@ -24,8 +21,6 @@ import com.intellij.util.ui.UIUtil
 import java.nio.file.Path
 import java.util.function.Consumer
 import javax.swing.BorderFactory
-import kotlin.io.path.exists
-import kotlin.io.path.readText
 
 class LinterProjectSettingsForm(private val project: Project?, private val model: Model) {
 
@@ -36,10 +31,8 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
         var executeWhenSave: Boolean
     )
 
-    private val linterConfigFile = convertTextToPsi(LANGUAGE_DEMO_TEXT)
-
-    private val globalConfigView = GlobalConfigView(disabledBehavior())
-    private val executeView = ExecuteWhenView()
+    private val globalConfigView = GlobalConfigView(enableLinterBehavior())
+    private val executeView = ExecuteWhenView(executeWhenBehavior())
 
     private val linterConfigPathField = LinterToolchainPathChoosingComboBox(
         FileChooserDescriptorFactory.createSingleFileDescriptor()
@@ -60,6 +53,7 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
         linterConfigPathField.addToolchainsAsync {
             listOf(toolchainSettings.configLocation.toPath())
         }
+        linterOptions.disableWidget()
     }
 
     private fun showNewToolchainDialog() {
@@ -91,34 +85,34 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
         model.homeLocation = toolchainInfo.location
     }
 
-    private fun disabledBehavior(): Consumer<LinterConfig> = Consumer {
+    private fun enableLinterBehavior(): Consumer<LinterConfig> = Consumer {
         model.linter = it
-        linterOptions.disableWidget()
         linterConfigPathField.isEnabled = LinterConfig.CUSTOM == it
 
         when (it) {
-            LinterConfig.DISABLED -> Unit
-            LinterConfig.GLOBAL -> {
-                linterOptions.setProperties(linterConfigFile.getProperties())
-            }
-            LinterConfig.CUSTOM -> {
-                val path = model.configPath.toPath()
-                if (path.exists()) {
-                    val text = model.configPath.toPath().readText()
-                    StreamUtil.convertSeparators(text)
-                    val file = convertTextToPsi(text)
-                    linterOptions.setProperties(file.getProperties())
+            LinterConfig.DISABLED -> linterOptions.setProperties(emptyMap())
+            else -> {
+                val linterConfigFile = it.configPsiFile(project, model.configPath)
+                if (linterConfigFile != null) {
+                    linterOptions.setProperties(linterConfigFile.getProperties())
+                    callbackConfigFile(linterConfigFile)
                 }
             }
         }
     }
 
-    private fun convertTextToPsi(text: String) = PsiFileFactory.getInstance(project)
-        .createFileFromText(
-            ".sqlfluff",
-            LinterFileType,
-            text
-        ) as LinterConfigFile
+    private fun executeWhenBehavior(): Consumer<Boolean> = Consumer {
+        model.executeWhenSave = it
+    }
+
+    private fun callbackConfigFile(configFile: LinterConfigFile) {
+        val templater = configFile.getTemplater()
+        val isDbt = templater.contains(DBT_TEMPLATER)
+        if (isDbt) {
+            executeView.selectExecution(true)
+        }
+        executeView.setEnable(!isDbt)
+    }
 
     fun createComponent(): DialogPanel {
 
@@ -158,5 +152,6 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
     fun reset() {
         toolchainChooser.select(model.homeLocation)
         globalConfigView.reset()
+        executeView.reset()
     }
 }

@@ -56,7 +56,7 @@ class GlobalConfigView(val changeListener: Consumer<LinterConfig>) {
         return panel
     }
 
-    fun selectLinter(linter: LinterConfig) {
+    private fun selectLinter(linter: LinterConfig) {
         useGlobalLint.isSelected = LinterConfig.GLOBAL == linter
         useManualLint.isSelected = LinterConfig.CUSTOM == linter
         disableLint.isSelected = LinterConfig.DISABLED == linter
