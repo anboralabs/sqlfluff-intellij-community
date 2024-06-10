@@ -1,13 +1,14 @@
 package co.anbora.labs.sqlfluff.lint.checker
 
 import co.anbora.labs.sqlfluff.ide.lang.psi.PsiFinderFlavor
+import co.anbora.labs.sqlfluff.ide.notifications.LinterErrorNotification
 import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixFlavor
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchain
+import co.anbora.labs.sqlfluff.lint.SQL_FLUFF
 import co.anbora.labs.sqlfluff.lint.api.LinterRunner
 import co.anbora.labs.sqlfluff.lint.api.ProcessResultsThread
 import co.anbora.labs.sqlfluff.lint.exception.LinterException
 import co.anbora.labs.sqlfluff.lint.issue.Issue
-import co.anbora.labs.sqlfluff.lint.issue.IssueItem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
@@ -91,7 +92,9 @@ class ScanFiles(
     }
 
     private fun scanFailedWithError(e: LinterException): Map<PsiFile, List<Problem>> {
-        // Notifications.showException(project, e)
+        LinterErrorNotification(e.message.orEmpty())
+            .withTitle("$SQL_FLUFF:")
+            .show()
 
         return emptyMap()
     }

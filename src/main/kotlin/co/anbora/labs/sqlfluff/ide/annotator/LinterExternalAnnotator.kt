@@ -6,14 +6,11 @@ import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.to
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile.Companion.DEFAULT_DIALECT
 import co.anbora.labs.sqlfluff.lint.checker.Problem
-import co.anbora.labs.sqlfluff.lint.checker.ScanFiles
 import co.anbora.labs.sqlfluff.lint.isSqlFileType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
-import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
 
 class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, LinterExternalAnnotator.Results>() {
@@ -25,8 +22,6 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
     )
 
     data class Results(val issues: List<Problem>)
-
-    data class Error(val message: String, val range: TextRange, val severity: HighlightSeverity)
 
     private val log = Logger.getInstance(
         LinterExternalAnnotator::class.java
@@ -63,8 +58,6 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
     }
 
     override fun doAnnotate(collectedInfo: State?): Results {
-        val startTime = System.currentTimeMillis()
-
         if (collectedInfo == null) {
             return NO_PROBLEMS_FOUND
         }
@@ -83,28 +76,13 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
             return NO_PROBLEMS_FOUND
         }
 
-        val project = collectedInfo.psiFile.project
-        val virtualFile = collectedInfo.psiFile.virtualFile
-        val psiFile = collectedInfo.psiFile
-
-        val scanFiles = ScanFiles(
-            project,
+        return linterType.lint(
+            collectedInfo,
             toolchainSettings.configLocation,
             toolchainSettings.toolchain(),
             PsiFinderFlavor.getApplicableFlavor(),
             QuickFixFlavor.getApplicableFlavor(),
-            listOf(virtualFile)
         )
-
-        val map = scanFiles.call()
-
-        if (map.isEmpty()) {
-            return NO_PROBLEMS_FOUND
-        }
-
-        val duration: Long = System.currentTimeMillis() - startTime
-        log.debug("Sqfluff scan completed: " + psiFile.name + " in " + duration + " ms")
-        return Results(map[psiFile] ?: emptyList())
     }
 
     override fun apply(file: PsiFile, annotationResult: Results?, holder: AnnotationHolder) {
@@ -119,4 +97,4 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
     }
 }
 
-private val NO_PROBLEMS_FOUND: LinterExternalAnnotator.Results = LinterExternalAnnotator.Results(emptyList())
+val NO_PROBLEMS_FOUND: LinterExternalAnnotator.Results = LinterExternalAnnotator.Results(emptyList())
