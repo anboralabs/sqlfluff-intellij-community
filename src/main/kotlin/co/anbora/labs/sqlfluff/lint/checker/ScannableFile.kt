@@ -1,5 +1,6 @@
 package co.anbora.labs.sqlfluff.lint.checker
 
+import co.anbora.labs.sqlfluff.lint.VIRTUAL_FILE_PREFIX
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.ThrowableComputable
@@ -10,8 +11,6 @@ import java.nio.file.Files
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.stream.Collectors
-
-private const val VIRTUAL_FILE_PREFIX = "__sqlfluff_tmp_"
 
 class ScannableFile(
     val psiFile: PsiFile

@@ -14,6 +14,7 @@ import com.intellij.openapi.util.TextRange
 import java.util.regex.Pattern
 
 const val SQL_FLUFF = "sqlfluff"
+const val VIRTUAL_FILE_PREFIX = "__sqlfluff_tmp_"
 
 sealed class Linter {
 
