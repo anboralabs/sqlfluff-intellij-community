@@ -1,9 +1,11 @@
 package co.anbora.labs.sqlfluff.lint.checker
 
+import co.anbora.labs.sqlfluff.ide.lang.psi.PsiFinderFlavor
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchain
 import co.anbora.labs.sqlfluff.lint.api.LinterRunner
 import co.anbora.labs.sqlfluff.lint.api.ProcessResultsThread
 import co.anbora.labs.sqlfluff.lint.exception.LinterException
+import co.anbora.labs.sqlfluff.lint.issue.Issue
 import co.anbora.labs.sqlfluff.lint.issue.IssueItem
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
@@ -21,6 +23,7 @@ class ScanFiles(
     val project: Project,
     val configPath: String,
     val toolchain: LinterToolchain,
+    val psiFinder: PsiFinderFlavor,
     virtualFiles: List<VirtualFile>
 ): Callable<Map<PsiFile, List<Problem>>> {
 
@@ -105,10 +108,11 @@ class ScanFiles(
     @Throws(InterruptedIOException::class, InterruptedException::class)
     private fun scan(filesToScan: List<ScannableFile>): Map<PsiFile, List<Problem>> {
         val fileNamesToPsiFiles: Map<String, PsiFile> = mapFilesToElements(filesToScan)
-        val errors: List<IssueItem> = LinterRunner.scan(project, configPath, toolchain, fileNamesToPsiFiles.keys)
+        val errors: List<Issue> = LinterRunner.lint(project, configPath, toolchain, fileNamesToPsiFiles.keys)
         val baseDir: String? = project.basePath
         val tabWidth = 4
         val findThread = ProcessResultsThread(
+            psiFinder,
             false, tabWidth, baseDir,
             errors, fileNamesToPsiFiles
         )

@@ -6,7 +6,7 @@ import co.anbora.labs.sqlfluff.ide.notifications.LinterErrorNotification
 import co.anbora.labs.sqlfluff.ide.runner.SqlFluffLintRunner
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService
 import co.anbora.labs.sqlfluff.lint.issue.IssueItem
-import co.anbora.labs.sqlfluff.lint.issue.IssueMapper
+import co.anbora.labs.sqlfluff.lint.issue.LinterIssueMapper
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
@@ -61,7 +61,7 @@ sealed class Linter {
         document: Document
     ): List<LinterExternalAnnotator.Error> {
         return result.output.asSequence().map {
-            IssueMapper.apply(it)
+            LinterIssueMapper.apply(it)
         }
             .flatten()
             .mapNotNull { it.violations }

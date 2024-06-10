@@ -69,6 +69,8 @@
                         dynamic="true" name="toolchain"/>
         <extensionPoint interface="co.anbora.labs.sqlfluff.ide.discovery.LinterDiscoveryFlavor"
                         dynamic="true" name="discovery"/>
+        <extensionPoint interface="co.anbora.labs.sqlfluff.ide.lang.psi.PsiFinderFlavor"
+                        dynamic="true" name="elementFinder"/>
     </extensionPoints>
 
     <actions>
