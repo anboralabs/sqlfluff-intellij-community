@@ -1,6 +1,7 @@
 package co.anbora.labs.sqlfluff.lint.api
 
 import co.anbora.labs.sqlfluff.ide.lang.psi.PsiFinderFlavor
+import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixFlavor
 import co.anbora.labs.sqlfluff.lint.checker.Problem
 import co.anbora.labs.sqlfluff.lint.checker.PsiProblem
 import co.anbora.labs.sqlfluff.lint.checker.TextRangeProblem
@@ -15,6 +16,7 @@ import java.util.*
 
 class ProcessResultsThread(
     val psiFinder: PsiFinderFlavor,
+    val quickFixFlavor: QuickFixFlavor,
     val suppressErrors: Boolean,
     val tabWidth: Int,
     val baseDir: String?,
@@ -74,7 +76,7 @@ class ProcessResultsThread(
                     event.getMessage(),
                     psiElement,
                     event.getSeverity(),
-                    null
+                    quickFixFlavor.suggestFix(event.getErrorCode(), psiElement)
                 )
             )
         } catch (ex: PsiInvalidElementAccessException) {

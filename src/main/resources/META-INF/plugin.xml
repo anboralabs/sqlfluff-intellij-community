@@ -73,6 +73,8 @@
                         dynamic="true" name="discovery"/>
         <extensionPoint interface="co.anbora.labs.sqlfluff.ide.lang.psi.PsiFinderFlavor"
                         dynamic="true" name="elementFinder"/>
+        <extensionPoint interface="co.anbora.labs.sqlfluff.ide.quickFix.QuickFixFlavor"
+                        dynamic="true" name="quickFixer"/>
     </extensionPoints>
 
     <actions>

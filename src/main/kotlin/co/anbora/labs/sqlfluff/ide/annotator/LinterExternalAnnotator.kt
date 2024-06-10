@@ -1,6 +1,7 @@
 package co.anbora.labs.sqlfluff.ide.annotator
 
 import co.anbora.labs.sqlfluff.ide.lang.psi.PsiFinderFlavor
+import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixFlavor
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile.Companion.DEFAULT_DIALECT
@@ -91,6 +92,7 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
             toolchainSettings.configLocation,
             toolchainSettings.toolchain(),
             PsiFinderFlavor.getApplicableFlavor(),
+            QuickFixFlavor.getApplicableFlavor(),
             listOf(virtualFile)
         )
 

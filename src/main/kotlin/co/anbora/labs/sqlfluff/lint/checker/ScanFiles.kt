@@ -1,6 +1,7 @@
 package co.anbora.labs.sqlfluff.lint.checker
 
 import co.anbora.labs.sqlfluff.ide.lang.psi.PsiFinderFlavor
+import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixFlavor
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchain
 import co.anbora.labs.sqlfluff.lint.api.LinterRunner
 import co.anbora.labs.sqlfluff.lint.api.ProcessResultsThread
@@ -24,6 +25,7 @@ class ScanFiles(
     val configPath: String,
     val toolchain: LinterToolchain,
     val psiFinder: PsiFinderFlavor,
+    val quickFixer: QuickFixFlavor,
     virtualFiles: List<VirtualFile>
 ): Callable<Map<PsiFile, List<Problem>>> {
 
@@ -112,7 +114,7 @@ class ScanFiles(
         val baseDir: String? = project.basePath
         val tabWidth = 4
         val findThread = ProcessResultsThread(
-            psiFinder,
+            psiFinder, quickFixer,
             false, tabWidth, baseDir,
             errors, fileNamesToPsiFiles
         )

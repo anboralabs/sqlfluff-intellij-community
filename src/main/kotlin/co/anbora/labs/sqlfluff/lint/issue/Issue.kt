@@ -19,6 +19,10 @@ data class Issue(
     var name: String?
 ) {
 
+    fun getErrorCode(): String {
+        return code.orEmpty()
+    }
+
     fun getMessage(): String {
         return "$SQL_FLUFF [$code]: $description"
     }
