@@ -8,6 +8,8 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.jetbrains.plugins.ini4idea</depends>
 
+    <resource-bundle>co.anbora.labs.sqlfluff.Sqlfluff</resource-bundle>
+
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
@@ -36,6 +38,15 @@
                 id="preference.SqlFluffLinterConfigurable"
                 instance="co.anbora.labs.sqlfluff.ide.settings.LinterProjectSettingsConfigurable" />
         <externalAnnotator language="" implementationClass="co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator"/>
+        <localInspection implementationClass="co.anbora.labs.sqlfluff.ide.inspection.LinterInspection"
+                         language=""
+                         shortName="SqlfluffLinter"
+                         id="co.anbora.labs.sqlfluff.ide.inspection.LinterInspection"
+                         level="WEAK WARNING"
+                         enabledByDefault="true"
+                         displayName="Sqlfluff lint"
+                         key="inspection.display-name"
+                         groupKey="inspection.group"/>
 
         <notificationGroup id="sql.fluff.notification" displayType="BALLOON"/>
 
