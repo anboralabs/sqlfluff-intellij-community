@@ -11,6 +11,7 @@ import co.anbora.labs.sqlfluff.lint.isSqlFileType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiFile
 
@@ -18,7 +19,7 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
 
     data class State(
         val linter: LinterConfig,
-        val psiFile: PsiFile,
+        val psiWithDocument: Pair<PsiFile, Document>,
         val dialect: String,
         val config: LinterConfigFile?
     )
@@ -56,7 +57,7 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
             return null
         }
 
-        return State(linterType, file, dialect, configFile)
+        return State(linterType, Pair(file, document), dialect, configFile)
     }
 
     override fun doAnnotate(collectedInfo: State?): Results {

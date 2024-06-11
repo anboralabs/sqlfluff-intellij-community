@@ -27,12 +27,11 @@ sealed class Linter {
 
         log.info("sqlfluff linter executing")
 
-        val project = state.psiFile.project
-        val virtualFile = state.psiFile.virtualFile
-        val psiFile = state.psiFile
+        val psiFile = state.psiWithDocument.first
+        val project = psiFile.project
 
         val scanFiles = ScanFiles(
-            project, configPath, toolchain, psiFinder, quickFixer, listOf(virtualFile)
+            project, configPath, toolchain, psiFinder, quickFixer, listOf(state.psiWithDocument)
         )
 
         val map = scanFiles.call()

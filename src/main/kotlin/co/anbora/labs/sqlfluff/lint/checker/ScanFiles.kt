@@ -12,6 +12,7 @@ import co.anbora.labs.sqlfluff.lint.issue.Issue
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
@@ -27,14 +28,12 @@ class ScanFiles(
     val toolchain: LinterToolchain,
     val psiFinder: PsiFinderFlavor,
     val quickFixer: QuickFixFlavor,
-    virtualFiles: List<VirtualFile>
+    val files: List<Pair<PsiFile, Document>>
 ): Callable<Map<PsiFile, List<Problem>>> {
 
     private val log = Logger.getInstance(
         ScanFiles::class.java
     )
-
-    private val files: List<PsiFile> = findAllFilesFor(virtualFiles)
 
     private fun findAllFilesFor(virtualFiles: List<VirtualFile>): List<PsiFile> {
         val childFiles = mutableListOf<PsiFile>()
@@ -100,7 +99,7 @@ class ScanFiles(
     }
 
     @Throws(InterruptedIOException::class, InterruptedException::class)
-    private fun checkFiles(filesToScan: Set<PsiFile>): Map<PsiFile, List<Problem>> {
+    private fun checkFiles(filesToScan: Set<Pair<PsiFile, Document>>): Map<PsiFile, List<Problem>> {
         val scannableFiles = mutableListOf<ScannableFile>()
         try {
             scannableFiles.addAll(ScannableFile.createAndValidate(filesToScan))
@@ -112,7 +111,7 @@ class ScanFiles(
 
     @Throws(InterruptedIOException::class, InterruptedException::class)
     private fun scan(filesToScan: List<ScannableFile>): Map<PsiFile, List<Problem>> {
-        val fileNamesToPsiFiles: Map<String, PsiFile> = mapFilesToElements(filesToScan)
+        val fileNamesToPsiFiles: Map<String, Pair<PsiFile, Document>> = mapFilesToElements(filesToScan)
         val errors: List<Issue> = LinterRunner.lint(project, configPath, toolchain, fileNamesToPsiFiles.keys)
         val baseDir: String? = project.basePath
         val tabWidth = 4
@@ -126,8 +125,8 @@ class ScanFiles(
         return findThread.getProblems()
     }
 
-    private fun mapFilesToElements(filesToScan: List<ScannableFile>): Map<String, PsiFile> {
-        val filePathsToElements: MutableMap<String, PsiFile> = HashMap()
+    private fun mapFilesToElements(filesToScan: List<ScannableFile>): Map<String, Pair<PsiFile, Document>> {
+        val filePathsToElements: MutableMap<String, Pair<PsiFile, Document>> = HashMap()
         for (scannableFile in filesToScan) {
             filePathsToElements[scannableFile.getAbsolutePath()] = scannableFile.psiFile
         }
