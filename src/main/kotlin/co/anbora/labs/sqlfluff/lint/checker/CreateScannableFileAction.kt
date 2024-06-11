@@ -1,11 +1,12 @@
 package co.anbora.labs.sqlfluff.lint.checker
 
+import com.intellij.openapi.editor.Document
 import com.intellij.psi.PsiFile
 import com.intellij.util.ThrowableRunnable
 import java.io.IOException
 
 class CreateScannableFileAction(
-    val psiFile: PsiFile
+    val psiFile: Pair<PsiFile, Document>
 ): ThrowableRunnable<RuntimeException> {
 
     private var failure: IOException? = null

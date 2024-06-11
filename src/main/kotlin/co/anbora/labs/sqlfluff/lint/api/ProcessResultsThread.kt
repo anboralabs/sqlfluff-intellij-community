@@ -7,6 +7,7 @@ import co.anbora.labs.sqlfluff.lint.checker.PsiProblem
 import co.anbora.labs.sqlfluff.lint.checker.TextRangeProblem
 import co.anbora.labs.sqlfluff.lint.issue.Issue
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -21,7 +22,7 @@ class ProcessResultsThread(
     val tabWidth: Int,
     val baseDir: String?,
     val errors: List<Issue>,
-    val fileNamesToPsiFiles: Map<String, PsiFile>
+    val fileNamesToPsiFiles: Map<String, Pair<PsiFile, Document>>
 ): ThrowableRunnable<RuntimeException> {
 
     private val log = Logger.getInstance(
@@ -34,8 +35,10 @@ class ProcessResultsThread(
         val lineLengthCachesByFile: MutableMap<PsiFile, MutableList<Int>> = HashMap()
 
         for (event in errors) {
-            val psiFile = fileNamesToPsiFiles[event.filepath]
-            if (psiFile == null) {
+            val pair = fileNamesToPsiFiles[event.filepath]
+            val psiFile = pair?.first
+            val document = pair?.second
+            if (pair == null || psiFile == null || document == null) {
                 log.info(("Could not find mapping for file: " + event.filepath) + " in " + fileNamesToPsiFiles)
                 return
             }
@@ -50,12 +53,12 @@ class ProcessResultsThread(
                 lineLengthCachesByFile[psiFile] = lineLengthCache
             }
 
-            processEvent(psiFile, lineLengthCache, event)
+            processEvent(psiFile, document, lineLengthCache, event)
         }
     }
 
-    private fun processEvent(psiFile: PsiFile, lineLengthCache: List<Int>, event: Issue) {
-        val element = psiFinder.findElement(psiFile, psiFile.fileDocument, event)
+    private fun processEvent(psiFile: PsiFile, document: Document, lineLengthCache: List<Int>, event: Issue) {
+        val element = psiFinder.findElement(psiFile, document, event)
 
         val (textRange, psiElement) = element
 

@@ -3,6 +3,7 @@ package co.anbora.labs.sqlfluff.lint.checker
 import co.anbora.labs.sqlfluff.lint.VIRTUAL_FILE_PREFIX
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiFile
 import java.io.File
@@ -13,14 +14,14 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.stream.Collectors
 
 class ScannableFile(
-    val psiFile: PsiFile
+    val psiFile: Pair<PsiFile, Document>
 ) {
 
     private val realFile: File
 
     init {
-        val document = psiFile.fileDocument
-        val parent = psiFile.virtualFile
+        val document = psiFile.second
+        val parent = psiFile.first.virtualFile
         val nioFile = parent.toNioPath()
         val tempFile = Files.createTempFile(nioFile.parent, VIRTUAL_FILE_PREFIX, ".${parent.extension}")
         realFile = tempFile.toFile().also {
@@ -47,7 +48,7 @@ class ScannableFile(
         )
 
         fun createAndValidate(
-            psiFiles: Collection<PsiFile>
+            psiFiles: Collection<Pair<PsiFile, Document>>
         ): List<ScannableFile> {
             val action = ThrowableComputable<List<ScannableFile>, RuntimeException> {
                     psiFiles.stream()
@@ -58,7 +59,7 @@ class ScannableFile(
             return ReadAction.compute(action)
         }
 
-        fun create(psiFile: PsiFile): ScannableFile? {
+        fun create(psiFile: Pair<PsiFile, Document>): ScannableFile? {
             try {
                 val fileAction = CreateScannableFileAction(psiFile)
                 ReadAction.run(fileAction)
