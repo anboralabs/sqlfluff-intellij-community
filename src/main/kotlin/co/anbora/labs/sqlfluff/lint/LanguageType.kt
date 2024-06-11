@@ -1,9 +1,7 @@
 package co.anbora.labs.sqlfluff.lint
 
-import com.intellij.psi.PsiFile
+import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile
 
-const val SQL_LANG = "SQL"
-
-fun PsiFile?.isSqlFileType(): Boolean {
-    return this != null && this.fileType.name == SQL_LANG
+fun isSqlFileType(config: LinterConfigFile?, extension: String): Boolean {
+    return config != null && extension in config.extensions()
 }

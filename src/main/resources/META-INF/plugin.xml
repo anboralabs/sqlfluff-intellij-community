@@ -6,27 +6,82 @@
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.jetbrains.plugins.ini4idea</depends>
+
+    <resource-bundle>co.anbora.labs.sqlfluff.Sqlfluff</resource-bundle>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
         <treeStructureProvider
                 implementation="co.anbora.labs.sqlfluff.ide.projectView.TempSQLTreeStructureProvider"/>
+        <fileType name="sqlfluff config" implementationClass="co.anbora.labs.sqlfluff.file.LinterFileType"
+                  fieldName="INSTANCE" language="sql_fluff_config" patterns=".sqlfluff"/>
+        <lang.parserDefinition language="sql_fluff_config"
+                               implementationClass="co.anbora.labs.sqlfluff.lang.parser.LinterParserDefinition"/>
+        <lang.syntaxHighlighterFactory language="sql_fluff_config"
+                                       implementationClass="co.anbora.labs.sqlfluff.ide.highlighter.LinterSyntaxHighlighterFactory"/>
+        <colorSettingsPage implementation="co.anbora.labs.sqlfluff.ide.highlighter.LinterColorSettingPage"/>
+
+        <lang.foldingBuilder language="sql_fluff_config" implementationClass="ini4idea.folding.IniFoldingBuilder"/>
+        <lang.formatter language="sql_fluff_config" implementationClass="ini4idea.formatting.IniFormattingModelBuilder"/>
+
+        <lang.psiStructureViewFactory language="sql_fluff_config" implementationClass="co.anbora.labs.sqlfluff.ide.structureView.LinterStructureViewFactory"/>
+        <gotoSymbolContributor implementation="co.anbora.labs.sqlfluff.ide.symbolContributor.LinterGoToSymbolContributor"/>
+
+        <stubIndex implementation="co.anbora.labs.sqlfluff.ide.stub.LinterPropertyKeyIndex"/>
+        <lang.commenter language="sql_fluff_config" implementationClass="co.anbora.labs.sqlfluff.ide.commenter.LinterCommenter"/>
+
+        <postStartupActivity implementation="co.anbora.labs.sqlfluff.ide.listener.LinterConfigProjectListener"/>
+
         <projectConfigurable
                 groupId="tools"
                 displayName="Sqlfluff Linter"
                 id="preference.SqlFluffLinterConfigurable"
-                instance="co.anbora.labs.sqlfluff.ide.settings.LinterSettings" />
+                instance="co.anbora.labs.sqlfluff.ide.settings.LinterProjectSettingsConfigurable" />
         <externalAnnotator language="" implementationClass="co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator"/>
         <localInspection implementationClass="co.anbora.labs.sqlfluff.ide.inspection.LinterInspection"
-                         displayName="SqlFluff inspection"
-                         groupName="Sql: line"
-                         id="SqlFluffInspection"
+                         language=""
+                         shortName="SqlfluffLinter"
+                         id="co.anbora.labs.sqlfluff.ide.inspection.LinterInspection"
                          level="WEAK WARNING"
-                         enabledByDefault="true"/>
+                         enabledByDefault="true"
+                         displayName="Sqlfluff lint"
+                         key="inspection.display-name"
+                         groupKey="inspection.group"/>
 
-        <notificationGroup id="SqlFluffCommunityNotification" displayType="BALLOON"/>
+        <notificationGroup id="sql.fluff.notification" displayType="BALLOON"/>
 
-        <pluginReplacement implementation="co.anbora.labs.sqlfluff.ide.replacement.LinterPluginReplacement"/>
+        <applicationService serviceImplementation="co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState"/>
+        <applicationService serviceImplementation="co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService"/>
+
+        <postStartupActivity implementation="co.anbora.labs.sqlfluff.ide.startup.InitConfigFiles"/>
     </extensions>
+
+    <extensions defaultExtensionNs="co.anbora.labs.sqlfluff">
+        <discovery implementation="co.anbora.labs.sqlfluff.ide.discovery.flavor.LinterWinDiscovery" />
+        <discovery implementation="co.anbora.labs.sqlfluff.ide.discovery.flavor.LinterUnixDiscovery" />
+        <toolchain implementation="co.anbora.labs.sqlfluff.ide.toolchain.flavor.LinterWinPathToolchainFlavor"/>
+        <toolchain implementation="co.anbora.labs.sqlfluff.ide.toolchain.flavor.LinterUnixPathToolchainFlavor"/>
+        <toolchain implementation="co.anbora.labs.sqlfluff.ide.toolchain.flavor.LinterSysPathToolchainFlavor"/>
+    </extensions>
+
+    <extensionPoints>
+        <extensionPoint interface="co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainFlavor"
+                        dynamic="true" name="toolchain"/>
+        <extensionPoint interface="co.anbora.labs.sqlfluff.ide.discovery.LinterDiscoveryFlavor"
+                        dynamic="true" name="discovery"/>
+        <extensionPoint interface="co.anbora.labs.sqlfluff.ide.lang.psi.PsiFinderFlavor"
+                        dynamic="true" name="elementFinder"/>
+        <extensionPoint interface="co.anbora.labs.sqlfluff.ide.quickFix.QuickFixFlavor"
+                        dynamic="true" name="quickFixer"/>
+    </extensionPoints>
+
+    <actions>
+        <action
+            id="co.anbora.labs.sqlfluff.ide.actions.Setup"
+            class="co.anbora.labs.sqlfluff.ide.actions.Setup"
+            text="Setup"
+        />
+    </actions>
 </idea-plugin>

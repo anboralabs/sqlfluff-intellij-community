@@ -1,29 +1,35 @@
 package co.anbora.labs.sqlfluff.ide.annotator
 
-import co.anbora.labs.sqlfluff.ide.settings.Settings
+import co.anbora.labs.sqlfluff.ide.lang.psi.PsiFinderFlavor
+import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixFlavor
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
+import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile
+import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile.Companion.DEFAULT_DIALECT
 import co.anbora.labs.sqlfluff.lint.LinterConfig
+import co.anbora.labs.sqlfluff.lint.checker.Problem
 import co.anbora.labs.sqlfluff.lint.isSqlFileType
-import co.anbora.labs.sqlfluff.ide.fs.LinterVirtualFile
-import co.anbora.labs.sqlfluff.ide.fs.LinterVirtualFileImpl
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
-import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
-import java.util.*
 
-class LinterExternalAnnotator: ExternalAnnotator<LinterVirtualFile, Collection<LinterExternalAnnotator.Error>>() {
+class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, LinterExternalAnnotator.Results>() {
 
-    data class Error(val message: String, val range: TextRange, val severity: HighlightSeverity)
+    data class State(
+        val linter: LinterConfig,
+        val psiFile: PsiFile,
+        val dialect: String,
+        val config: LinterConfigFile?
+    )
+
+    data class Results(val issues: List<Problem>)
 
     private val log = Logger.getInstance(
         LinterExternalAnnotator::class.java
     )
 
-    override fun collectInformation(file: PsiFile): LinterVirtualFile? {
+    override fun collectInformation(file: PsiFile): State? {
         val vfile = file.virtualFile
 
         if (vfile == null) {
@@ -38,42 +44,61 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterVirtualFile, Collection<L
             return null
         }
 
-        return LinterVirtualFileImpl(document, vfile, file)
-    }
+        val linterType = toolchainSettings.linter
 
-    override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean): LinterVirtualFile? {
-        if (!file.isSqlFileType()) {
+        val configFile = linterType.configPsiFile(file.project, toolchainSettings.configLocation)
+        val dialect = configFile?.getDialect() ?: DEFAULT_DIALECT
+        val extension = "." + file.fileType.defaultExtension
+        val isSqlFileType = isSqlFileType(configFile, extension)
+
+        if (!isSqlFileType) {
+            log.info("Invalid sql file type")
             return null
         }
 
-        return collectInformation(file)
+        return State(linterType, file, dialect, configFile)
     }
 
-    override fun doAnnotate(collectedInfo: LinterVirtualFile?): Collection<Error> {
-        val isValid = collectedInfo?.isSqlFileType() ?: false
-
-        if (!isValid) {
-            return Collections.emptyList()
+    override fun doAnnotate(collectedInfo: State?): Results {
+        if (collectedInfo == null) {
+            return NO_PROBLEMS_FOUND
         }
 
         log.info("running sqlfluff Linter external annotator for $collectedInfo")
 
-        val linterType = LinterConfig.getOrDefault(Settings[Settings.SELECTED_LINTER])
-
-        return when (collectedInfo) {
-            is LinterVirtualFile -> linterType.lint(collectedInfo.createTempFile())
-            else -> Collections.emptyList()
+        if (!toolchainSettings.toolchain().isValid()) {
+            log.debug("Scan failed: sqlfluff not available.")
+            return NO_PROBLEMS_FOUND
         }
+
+        val linterConfigFile = collectedInfo.config
+
+        if (linterConfigFile == null) {
+            log.debug("Scan failed: sqlfluff config file not available.")
+            return NO_PROBLEMS_FOUND
+        }
+
+        val linterType = collectedInfo.linter
+
+        return linterType.lint(
+            collectedInfo,
+            toolchainSettings.configLocation,
+            toolchainSettings.toolchain(),
+            PsiFinderFlavor.getApplicableFlavor(),
+            QuickFixFlavor.getApplicableFlavor(),
+        )
     }
 
-    override fun apply(file: PsiFile, annotationResult: Collection<Error>?, holder: AnnotationHolder) {
-        annotationResult?.let {
-            for (error in it) {
-                holder
-                    .newAnnotation(error.severity, error.message)
-                    .range(error.range)
-                    .create()
-            }
+    override fun apply(file: PsiFile, annotationResult: Results?, holder: AnnotationHolder) {
+        if (annotationResult == null || !file.isValid) {
+            return
+        }
+
+        for (problem in annotationResult.issues) {
+            log.debug(problem.getMessage())
+            problem.createAnnotation(holder)
         }
     }
 }
+
+val NO_PROBLEMS_FOUND: LinterExternalAnnotator.Results = LinterExternalAnnotator.Results(emptyList())

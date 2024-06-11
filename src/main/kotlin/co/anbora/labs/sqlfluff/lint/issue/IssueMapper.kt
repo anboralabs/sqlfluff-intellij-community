@@ -1,14 +1,25 @@
 package co.anbora.labs.sqlfluff.lint.issue
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import java.util.function.Function
 
-object IssueMapper: Function<String, List<FileIssue>> {
+object IssueMapper: Function<FileIssue, List<Issue>> {
+    override fun apply(fileIssue: FileIssue): List<Issue> {
 
-    private val MAPPER = jacksonObjectMapper()
+        val violations = fileIssue.violations ?: return emptyList()
 
-    override fun apply(json: String): List<FileIssue> {
-        return MAPPER.readValue(json, object : TypeReference<List<FileIssue>>() {})
+        return violations.map {
+            Issue(
+                fileIssue.filepath,
+                it.lineNo,
+                it.linePos,
+                it.lineFilePos,
+                it.endLineNo,
+                it.endLinePos,
+                it.endFilePos,
+                it.code,
+                it.description,
+                it.name
+            )
+        }
     }
 }

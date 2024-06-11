@@ -1,6 +1,6 @@
 package co.anbora.labs.sqlfluff.ide.projectView
 
-import co.anbora.labs.sqlfluff.ide.fs.VIRTUAL_FILE_PREFIX
+import co.anbora.labs.sqlfluff.lint.VIRTUAL_FILE_PREFIX
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.TreeStructureProvider
 import com.intellij.ide.projectView.ViewSettings

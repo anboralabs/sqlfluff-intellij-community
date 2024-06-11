@@ -12,6 +12,14 @@ data class IssueItem(
     @JsonProperty("line_pos")
     @JsonAlias("start_line_pos")
     var linePos: Int?,
+    @JsonAlias("start_file_pos")
+    var lineFilePos: Int?,
+    @JsonAlias("end_line_no")
+    var endLineNo: Int?,
+    @JsonAlias("end_line_pos")
+    var endLinePos: Int?,
+    @JsonAlias("end_file_pos")
+    var endFilePos: Int?,
     @JsonProperty("code")
     var code: String?,
     @JsonProperty("description")
