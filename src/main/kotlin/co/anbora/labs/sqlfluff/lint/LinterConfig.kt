@@ -4,13 +4,16 @@ import co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator
 import co.anbora.labs.sqlfluff.ide.annotator.NO_PROBLEMS_FOUND
 import co.anbora.labs.sqlfluff.ide.lang.psi.PsiFinderFlavor
 import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixFlavor
+import co.anbora.labs.sqlfluff.ide.startup.InitConfigFiles.Companion.DEFAULT_CONFIG_PATH
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchain
 import co.anbora.labs.sqlfluff.ide.utils.toPath
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile
 import co.anbora.labs.sqlfluff.lang.psi.util.PsiParserHelper
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.StreamUtil
 import com.intellij.openapi.vfs.VirtualFile
+import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 
@@ -34,7 +37,9 @@ enum class LinterConfig(protected val linter: Linter) {
             toolchain: LinterToolchain,
             psiFinder: PsiFinderFlavor,
             quickFixer: QuickFixFlavor,
-        ): LinterExternalAnnotator.Results = linter.lint(state, configPath, toolchain, psiFinder, quickFixer)
+        ): LinterExternalAnnotator.Results {
+            return linter.lint(state, DEFAULT_CONFIG_PATH.absolutePathString(), toolchain, psiFinder, quickFixer)
+        }
 
         override fun configPsiFile(
             project: Project?,

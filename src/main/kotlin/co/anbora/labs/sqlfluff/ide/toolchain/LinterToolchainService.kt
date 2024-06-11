@@ -36,6 +36,10 @@ class LinterToolchainService: PersistentStateComponent<LinterToolchainService.To
         state.executeWhenSave = options.executeWhenSave
     }
 
+    fun setConfigPath(configPath: String) {
+        state.configPath = configPath
+    }
+
     fun toolchain(): LinterToolchain {
         if (toolchain == LinterToolchain.NULL && state.isValid()) {
             setToolchain(LinterToolchain.fromPath(state.toolchainLocation))

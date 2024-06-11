@@ -5,6 +5,7 @@ import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixFlavor
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile.Companion.DEFAULT_DIALECT
+import co.anbora.labs.sqlfluff.lint.LinterConfig
 import co.anbora.labs.sqlfluff.lint.checker.Problem
 import co.anbora.labs.sqlfluff.lint.isSqlFileType
 import com.intellij.lang.annotation.AnnotationHolder
@@ -16,6 +17,7 @@ import com.intellij.psi.PsiFile
 class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, LinterExternalAnnotator.Results>() {
 
     data class State(
+        val linter: LinterConfig,
         val psiFile: PsiFile,
         val dialect: String,
         val config: LinterConfigFile?
@@ -26,8 +28,6 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
     private val log = Logger.getInstance(
         LinterExternalAnnotator::class.java
     )
-
-    private val linterType = toolchainSettings.linter
 
     override fun collectInformation(file: PsiFile): State? {
         val vfile = file.virtualFile
@@ -44,6 +44,8 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
             return null
         }
 
+        val linterType = toolchainSettings.linter
+
         val configFile = linterType.configPsiFile(file.project, toolchainSettings.configLocation)
         val dialect = configFile?.getDialect() ?: DEFAULT_DIALECT
         val extension = "." + file.fileType.defaultExtension
@@ -54,7 +56,7 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
             return null
         }
 
-        return State(file, dialect, configFile)
+        return State(linterType, file, dialect, configFile)
     }
 
     override fun doAnnotate(collectedInfo: State?): Results {
@@ -75,6 +77,8 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
             log.debug("Scan failed: sqlfluff config file not available.")
             return NO_PROBLEMS_FOUND
         }
+
+        val linterType = collectedInfo.linter
 
         return linterType.lint(
             collectedInfo,

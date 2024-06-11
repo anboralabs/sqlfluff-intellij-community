@@ -1,5 +1,6 @@
 package co.anbora.labs.sqlfluff.ide.settings
 
+import co.anbora.labs.sqlfluff.ide.startup.InitConfigFiles.Companion.DEFAULT_CONFIG_PATH
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
 import co.anbora.labs.sqlfluff.ide.ui.ExecuteWhenView
@@ -21,6 +22,7 @@ import com.intellij.util.ui.UIUtil
 import java.nio.file.Path
 import java.util.function.Consumer
 import javax.swing.BorderFactory
+import kotlin.io.path.absolutePathString
 
 class LinterProjectSettingsForm(private val project: Project?, private val model: Model) {
 
