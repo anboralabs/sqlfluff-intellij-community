@@ -46,4 +46,3 @@ class TextRangeProblem(
         annotation.create()
     }
 }
-
