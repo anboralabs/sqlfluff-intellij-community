@@ -30,7 +30,7 @@
         <gotoSymbolContributor implementation="co.anbora.labs.sqlfluff.ide.symbolContributor.LinterGoToSymbolContributor"/>
 
         <stubIndex implementation="co.anbora.labs.sqlfluff.ide.stub.LinterPropertyKeyIndex"/>
-        <lang.commenter language="sql_fluff_config" implementationClass="co.anbora.labs.sqlfluff.ide.commenter.LinterCommenter"/>
+        <lang.commenter language="sql_fluff_config" implementationClass="ini4idea.lang.IniCommenter"/>
 
         <postStartupActivity implementation="co.anbora.labs.sqlfluff.ide.listener.LinterConfigProjectListener"/>
 
