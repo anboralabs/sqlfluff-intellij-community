@@ -13,7 +13,12 @@ import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.psi.PsiFile
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicReference
 
 class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, LinterExternalAnnotator.Results>() {
 
@@ -79,15 +84,35 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
             return NO_PROBLEMS_FOUND
         }
 
-        val linterType = collectedInfo.linter
+        val result: AtomicReference<Results> = AtomicReference(NO_PROBLEMS_FOUND)
+        val latch = CountDownLatch(1)
 
-        return linterType.lint(
-            collectedInfo,
-            toolchainSettings.configLocation,
-            toolchainSettings.toolchain(),
-            PsiFinderFlavor.getApplicableFlavor(),
-            QuickFixFlavor.getApplicableFlavor(),
-        )
+        val project = collectedInfo.psiWithDocument.first.project
+
+        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Running sqlfluff...", false) {
+            override fun run(p0: ProgressIndicator) {
+                val linterType = collectedInfo.linter
+
+                val linterResult = linterType.lint(
+                    collectedInfo,
+                    toolchainSettings.configLocation,
+                    toolchainSettings.toolchain(),
+                    PsiFinderFlavor.getApplicableFlavor(),
+                    QuickFixFlavor.getApplicableFlavor()
+                )
+                result.set(linterResult)
+
+                latch.countDown()
+            }
+        })
+
+        try {
+            latch.await()
+        } catch (ex: InterruptedException) {
+            return NO_PROBLEMS_FOUND
+        }
+
+        return result.get()
     }
 
     override fun apply(file: PsiFile, annotationResult: Results?, holder: AnnotationHolder) {
