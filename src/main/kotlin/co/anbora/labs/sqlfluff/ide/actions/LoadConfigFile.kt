@@ -8,18 +8,20 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import java.nio.file.Path
+import kotlin.io.path.pathString
 
 class LoadConfigFile(
     private val project: Project,
-    private val configFile: VirtualFile
+    private val configFile: Path
 ): DumbAwareAction("Load") {
     override fun actionPerformed(e: AnActionEvent) {
         val toolchainSettings = LinterToolchainService.toolchainSettings
-        toolchainSettings.setConfigPath(configFile.path)
+        toolchainSettings.setConfigPath(configFile.pathString)
         toolchainSettings.setLinterSettingOption(
             LinterToolchainService.LinterConfigSettings(
                 LinterConfig.CUSTOM,
-                configFile.path,
+                configFile.pathString,
                 true
             )
         )

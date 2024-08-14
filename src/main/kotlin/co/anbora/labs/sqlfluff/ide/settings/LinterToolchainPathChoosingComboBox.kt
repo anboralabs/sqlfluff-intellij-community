@@ -2,9 +2,6 @@ package co.anbora.labs.sqlfluff.ide.settings
 
 import co.anbora.labs.sqlfluff.ide.utils.addTextChangeListener
 import co.anbora.labs.sqlfluff.ide.utils.pathAsPath
-import com.intellij.openapi.application.AppUIExecutor
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -14,6 +11,9 @@ import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ComboboxSpeedSearch
 import com.intellij.ui.components.fields.ExtendableTextComponent
 import com.intellij.ui.components.fields.ExtendableTextField
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.nio.file.Path
 import javax.swing.plaf.basic.BasicComboBoxEditor
 import kotlin.io.path.pathString
@@ -40,7 +40,7 @@ class LinterToolchainPathChoosingComboBox(
         }
 
     init {
-        ComboboxSpeedSearch(childComponent)
+        ComboboxSpeedSearch.installOn(childComponent)
         childComponent.editor = editor
         childComponent.isEditable = true
 
@@ -68,19 +68,18 @@ class LinterToolchainPathChoosingComboBox(
     @Suppress("UnstableApiUsage")
     fun addToolchainsAsync(toolchainObtainer: () -> List<Path>) {
         setBusy(true)
-        ApplicationManager.getApplication().executeOnPooledThread {
-            var toolchains = emptyList<Path>()
-            try {
-                toolchains = toolchainObtainer()
-            } finally {
-                val executor = AppUIExecutor.onUiThread(ModalityState.any()).expireWith(this)
-                executor.execute {
-                    setBusy(false)
-                    childComponent.removeAllItems()
-                    toolchains.forEach(childComponent::addItem)
-                    selectedPath = selectedPath?.ifEmpty { null } ?: (toolchains.firstOrNull()?.pathString ?: "")
+        runBlocking {
+            val toolchains = withContext(Dispatchers.Default) {
+                try {
+                    toolchainObtainer()
+                } catch (e: Exception) {
+                    emptyList()
                 }
             }
+            setBusy(false)
+            childComponent.removeAllItems()
+            toolchains.forEach(childComponent::addItem)
+            selectedPath = selectedPath?.ifEmpty { null } ?: (toolchains.firstOrNull()?.pathString ?: "")
         }
     }
 }
