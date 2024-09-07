@@ -59,7 +59,7 @@ object LinterConfigurationUtil {
             handler.addProcessListener(object : CapturingProcessAdapter() {
                 override fun processTerminated(event: ProcessEvent) {
                     if (event.exitCode != 0) {
-                        LOG.warn("Couldn't get ngrok toolchain version: " + output.stderr)
+                        LOG.warn("Couldn't get sqlfluff toolchain version: " + output.stderr)
                     } else {
                         processOutput.append(output.stdout)
                     }
@@ -69,7 +69,7 @@ object LinterConfigurationUtil {
             val future = ApplicationManager.getApplication().executeOnPooledThread {
                 handler.waitFor()
             }
-            future.get(1000, TimeUnit.MILLISECONDS)
+            future.get(5000, TimeUnit.MILLISECONDS)
         } catch (e: ExecutionException) {
             LOG.warn("Can't execute command for getting sqlfluff toolchain version", e)
         } catch (e: TimeoutException) {
