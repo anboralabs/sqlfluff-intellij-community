@@ -5,7 +5,6 @@ import co.anbora.labs.sqlfluff.ide.utils.toPathOrNull
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
-import kotlin.io.path.isExecutable
 
 class LinterSysPathToolchainFlavor : LinterToolchainFlavor() {
     override fun getHomePathCandidates(): Sequence<Path> {
@@ -15,8 +14,6 @@ class LinterSysPathToolchainFlavor : LinterToolchainFlavor() {
             .asSequence()
             .filter { it.isNotEmpty() }
             .mapNotNull { it.toPathOrNull() }
-            .filter { it.isExecutable() }
-            .map { it.parent }
             .filter { it.isDirectory() }
     }
 }

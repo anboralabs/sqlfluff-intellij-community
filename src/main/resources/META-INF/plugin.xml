@@ -51,6 +51,7 @@
                          groupKey="inspection.group"/>
 
         <notificationGroup id="sql.fluff.notification" displayType="BALLOON"/>
+        <notificationGroup id="sql.fluff.notification.license" displayType="BALLOON"/>
 
         <applicationService serviceImplementation="co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState"/>
         <applicationService serviceImplementation="co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService"/>
@@ -75,6 +76,8 @@
                         dynamic="true" name="elementFinder"/>
         <extensionPoint interface="co.anbora.labs.sqlfluff.ide.quickFix.QuickFixFlavor"
                         dynamic="true" name="quickFixer"/>
+        <extensionPoint interface="co.anbora.labs.sqlfluff.ide.checker.CheckerFlavor"
+                        dynamic="true" name="checker"/>
     </extensionPoints>
 
     <actions>
