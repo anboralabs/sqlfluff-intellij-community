@@ -42,12 +42,10 @@ class InitConfigFiles: ProjectActivity {
 
     private fun checkDefaultConfigFile() {
         val pathConfig = DEFAULT_CONFIG_PATH
-        if (!pathConfig.exists()) {
+        //if (!pathConfig.exists()) {
             val configFile = pathConfig.toFile().createNewFile()
-            if (configFile) {
-                Files.write(pathConfig, LANGUAGE_DEMO_TEXT.toByteArray())
-            }
-        }
+            Files.write(pathConfig, LANGUAGE_DEMO_TEXT.toByteArray())
+        //}
     }
 
     companion object {
