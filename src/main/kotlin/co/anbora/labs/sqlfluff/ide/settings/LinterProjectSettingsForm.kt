@@ -37,7 +37,7 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
     private val executeView = ExecuteWhenView(executeWhenBehavior())
 
     private val linterConfigPathField = LinterToolchainPathChoosingComboBox(
-        FileChooserDescriptorFactory.createSingleFileDescriptor()
+        FileChooserDescriptorFactory.createSingleFolderDescriptor()
     ) { onToolchainLocationChanged() }
 
     private val linterOptions = PropertyTable()
