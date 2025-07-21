@@ -11,7 +11,7 @@ object CommandLineRunner {
     fun execute(commandLine: GeneralCommandLine, timeoutInMilliseconds: Int): ProcessOutput {
         val processHandler = OSProcessHandler(commandLine)
         val output = ProcessOutput()
-        processHandler.addProcessListener(object : ProcessAdapter() {
+        processHandler.addProcessListener(object : ProcessListener {
             override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
                 if (outputType == ProcessOutputTypes.STDERR) {
                     output.appendStderr(event.text)
