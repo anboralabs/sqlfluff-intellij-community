@@ -1,5 +1,6 @@
 package co.anbora.labs.sqlfluff.ide.settings
 
+import co.anbora.labs.sqlfluff.file.LinterFileType
 import co.anbora.labs.sqlfluff.ide.startup.InitConfigFiles.Companion.DEFAULT_CONFIG_PATH
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
@@ -37,7 +38,7 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
     private val executeView = ExecuteWhenView(executeWhenBehavior())
 
     private val linterConfigPathField = LinterToolchainPathChoosingComboBox(
-        FileChooserDescriptorFactory.createSingleFolderDescriptor()
+        FileChooserDescriptorFactory.singleFile(),
     ) { onToolchainLocationChanged() }
 
     private val linterOptions = PropertyTable()

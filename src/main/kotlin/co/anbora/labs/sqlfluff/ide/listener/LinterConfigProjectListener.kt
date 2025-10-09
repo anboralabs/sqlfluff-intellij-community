@@ -44,7 +44,7 @@ class LinterConfigProjectListener: ProjectActivity, Disposable {
                 )
                 LinterNotifications.showNotification(notification, project)
             }
-        } else if (previousConfigFileExists && previousConfigFile != null) {
+        } else if (previousConfigFileExists) {
             val notification = LinterNotifications.createNotification(
                 "Sqlfluff Linter",
                 "Please setup default .sqlfluff config file",
