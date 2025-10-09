@@ -95,6 +95,7 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
 
                 val linterResult = linterType.lint(
                     collectedInfo,
+                    linterType.workDirectory(project, toolchainSettings.configLocation),
                     toolchainSettings.configLocation,
                     toolchainSettings.toolchain(),
                     PsiFinderFlavor.getApplicableFlavor(),

@@ -2,6 +2,7 @@ package co.anbora.labs.sqlfluff.lint.api
 
 import co.anbora.labs.sqlfluff.ide.runner.CommandLineRunner
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchain
+import co.anbora.labs.sqlfluff.ide.utils.toPath
 import co.anbora.labs.sqlfluff.lint.LinterCommands
 import co.anbora.labs.sqlfluff.lint.exception.LinterException
 import co.anbora.labs.sqlfluff.lint.issue.FileIssue
@@ -10,8 +11,8 @@ import co.anbora.labs.sqlfluff.lint.issue.IssueMapper
 import co.anbora.labs.sqlfluff.lint.issue.LinterIssueMapper
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ProcessOutput
-import com.intellij.openapi.project.Project
 import java.nio.charset.StandardCharsets
+import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
 object LinterRunner {
@@ -25,7 +26,7 @@ object LinterRunner {
 
 
     fun lint(
-        project: Project,
+        workingDirectory: Path?,
         configPath: String,
         toolchain: LinterToolchain,
         filesToScan: Set<String>
@@ -58,7 +59,7 @@ object LinterRunner {
         commandLine.addParameter("--format")
         commandLine.addParameter("json")
 
-        commandLine.setWorkDirectory(project.basePath)
+        commandLine.setWorkDirectory(workingDirectory?.toFile())
 
         val result = this.scan(commandLine)
 
