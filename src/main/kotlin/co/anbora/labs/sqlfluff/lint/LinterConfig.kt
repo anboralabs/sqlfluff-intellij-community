@@ -15,6 +15,7 @@ import com.intellij.openapi.util.io.StreamUtil
 import com.intellij.openapi.vfs.VirtualFile
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
 import kotlin.io.path.readText
 
 enum class LinterConfig(protected val linter: Linter) {
@@ -60,7 +61,7 @@ enum class LinterConfig(protected val linter: Linter) {
             path: String
         ): LinterConfigFile? {
             val filePath = path.toPath()
-            if (filePath.exists()) {
+            if (filePath.exists() && !filePath.isDirectory()) {
                 val text = filePath.readText()
                 StreamUtil.convertSeparators(text)
                 return PsiParserHelper.convertTextToPsi(project, ".sqlfluff", text)

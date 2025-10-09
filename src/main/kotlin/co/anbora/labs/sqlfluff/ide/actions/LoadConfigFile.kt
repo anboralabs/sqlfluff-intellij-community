@@ -3,6 +3,8 @@ package co.anbora.labs.sqlfluff.ide.actions
 import co.anbora.labs.sqlfluff.ide.notifications.LinterNotifications
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService
 import co.anbora.labs.sqlfluff.lint.LinterConfig
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -14,8 +16,12 @@ import kotlin.io.path.pathString
 class LoadConfigFile(
     private val project: Project,
     private val configFile: Path
-): DumbAwareAction("Load") {
-    override fun actionPerformed(e: AnActionEvent) {
+): NotificationAction("Load") {
+
+    override fun actionPerformed(
+        e: AnActionEvent,
+        notification: Notification
+    ) {
         val toolchainSettings = LinterToolchainService.toolchainSettings
         toolchainSettings.setConfigPath(configFile.pathString)
         toolchainSettings.setLinterSettingOption(
@@ -25,6 +31,8 @@ class LoadConfigFile(
                 true
             )
         )
+
+        notification.expire()
 
         val notification = LinterNotifications.createNotification(
             "Sqlfluff Linter",
