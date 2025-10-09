@@ -20,10 +20,12 @@ import com.intellij.openapi.vfs.VirtualFileVisitor
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import java.io.InterruptedIOException
+import java.nio.file.Path
 import java.util.concurrent.Callable
 
 class ScanFiles(
     val project: Project,
+    val workDirectory: Path?,
     val configPath: String,
     val toolchain: LinterToolchain,
     val psiFinder: PsiFinderFlavor,
@@ -112,12 +114,9 @@ class ScanFiles(
     @Throws(InterruptedIOException::class, InterruptedException::class)
     private fun scan(filesToScan: List<ScannableFile>): Map<PsiFile, List<Problem>> {
         val fileNamesToPsiFiles: Map<String, Pair<PsiFile, Document>> = mapFilesToElements(filesToScan)
-        val errors: List<Issue> = LinterRunner.lint(project, configPath, toolchain, fileNamesToPsiFiles.keys)
-        val baseDir: String? = project.basePath
-        val tabWidth = 4
+        val errors: List<Issue> = LinterRunner.lint(workDirectory, configPath, toolchain, fileNamesToPsiFiles.keys)
         val findThread = ProcessResultsThread(
             psiFinder, quickFixer,
-            false, tabWidth, baseDir,
             errors, fileNamesToPsiFiles
         )
 

@@ -7,6 +7,7 @@ import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixFlavor
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchain
 import co.anbora.labs.sqlfluff.lint.checker.ScanFiles
 import com.intellij.openapi.diagnostic.Logger
+import java.nio.file.Path
 
 const val SQL_FLUFF = "sqlfluff"
 const val VIRTUAL_FILE_PREFIX = "__sqlfluff_tmp_"
@@ -19,6 +20,7 @@ sealed class Linter {
 
     fun lint(
         state: LinterExternalAnnotator.State,
+        workDirectory: Path?,
         configPath: String,
         toolchain: LinterToolchain,
         psiFinder: PsiFinderFlavor,
@@ -31,7 +33,7 @@ sealed class Linter {
         val project = psiFile.project
 
         val scanFiles = ScanFiles(
-            project, configPath, toolchain, psiFinder, quickFixer, listOf(state.psiWithDocument)
+            project, workDirectory, configPath, toolchain, psiFinder, quickFixer, listOf(state.psiWithDocument)
         )
 
         val map = scanFiles.call()

@@ -18,9 +18,6 @@ import java.util.*
 class ProcessResultsThread(
     val psiFinder: PsiFinderFlavor,
     val quickFixFlavor: QuickFixFlavor,
-    val suppressErrors: Boolean,
-    val tabWidth: Int,
-    val baseDir: String?,
     val errors: List<Issue>,
     val fileNamesToPsiFiles: Map<String, Pair<PsiFile, Document>>
 ): ThrowableRunnable<RuntimeException> {

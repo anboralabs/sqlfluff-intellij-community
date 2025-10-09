@@ -13,6 +13,8 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.StreamUtil
 import com.intellij.openapi.vfs.VirtualFile
+import java.io.File
+import java.nio.file.Path
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
@@ -23,6 +25,7 @@ enum class LinterConfig(protected val linter: Linter) {
     DISABLED(DisabledLinter) {
         override fun lint(
             state: LinterExternalAnnotator.State,
+            workDirectory: Path?,
             configPath: String,
             toolchain: LinterToolchain,
             psiFinder: PsiFinderFlavor,
@@ -30,31 +33,37 @@ enum class LinterConfig(protected val linter: Linter) {
         ): LinterExternalAnnotator.Results = NO_PROBLEMS_FOUND
 
         override fun configPsiFile(project: Project?, path: String): LinterConfigFile? = null
+
+        override fun workDirectory(project: Project?, configPath: String): Path? = null
     },
     GLOBAL(GlobalLinter) {
         override fun lint(
             state: LinterExternalAnnotator.State,
+            workDirectory: Path?,
             configPath: String,
             toolchain: LinterToolchain,
             psiFinder: PsiFinderFlavor,
             quickFixer: QuickFixFlavor,
         ): LinterExternalAnnotator.Results {
-            return linter.lint(state, DEFAULT_CONFIG_PATH.absolutePathString(), toolchain, psiFinder, quickFixer)
+            return linter.lint(state, workDirectory, DEFAULT_CONFIG_PATH.absolutePathString(), toolchain, psiFinder, quickFixer)
         }
 
         override fun configPsiFile(
             project: Project?,
             path: String
         ): LinterConfigFile = PsiParserHelper.defaultLinterPsi(project)
+
+        override fun workDirectory(project: Project?, configPath: String): Path? = project?.basePath?.toPath()
     },
     CUSTOM(CustomLinter) {
         override fun lint(
             state: LinterExternalAnnotator.State,
+            workDirectory: Path?,
             configPath: String,
             toolchain: LinterToolchain,
             psiFinder: PsiFinderFlavor,
             quickFixer: QuickFixFlavor,
-        ): LinterExternalAnnotator.Results = linter.lint(state, configPath, toolchain, psiFinder, quickFixer)
+        ): LinterExternalAnnotator.Results = linter.lint(state, workDirectory, configPath, toolchain, psiFinder, quickFixer)
 
         override fun configPsiFile(
             project: Project?,
@@ -68,10 +77,13 @@ enum class LinterConfig(protected val linter: Linter) {
             }
             return null
         }
+
+        override fun workDirectory(project: Project?, configPath: String): Path? = configPath.toPath().parent
     };
 
     abstract fun lint(
         state: LinterExternalAnnotator.State,
+        workDirectory: Path?,
         configPath: String,
         toolchain: LinterToolchain,
         psiFinder: PsiFinderFlavor,
@@ -79,4 +91,6 @@ enum class LinterConfig(protected val linter: Linter) {
     ): LinterExternalAnnotator.Results
 
     abstract fun configPsiFile(project: Project?, path: String): LinterConfigFile?
+
+    abstract fun workDirectory(project: Project?, configPath: String): Path?
 }
