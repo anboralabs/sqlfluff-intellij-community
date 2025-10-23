@@ -3,9 +3,12 @@ package co.anbora.labs.sqlfluff.ide.settings
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchain
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainFlavor
+import co.anbora.labs.sqlfluff.ide.utils.pathAsPath
 import co.anbora.labs.sqlfluff.ide.utils.toPath
 import co.anbora.labs.sqlfluff.ide.utils.toPathOrNull
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.fileChooser.FileChooser
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
@@ -33,7 +36,10 @@ class LinterNewToolchainDialog(private val toolchainFilter: Condition<Path>, pro
     private val mainPanel: DialogPanel
     private val toolchainVersion = JLabel()
     private val toolchainIconLabel = JLabel()
-    private val pathToToolchainComboBox = LinterToolchainPathChoosingComboBox { onToolchainLocationChanged() }
+    private val pathToToolchainComboBox = LinterToolchainPathChoosingComboBox(
+        { getFileSelector() },
+        { onToolchainLocationChanged() }
+    )
 
     init {
         title = "New Location"
@@ -73,6 +79,12 @@ class LinterNewToolchainDialog(private val toolchainFilter: Condition<Path>, pro
         init()
     }
 
+    private fun getFileSelector() {
+        FileChooser.chooseFile(FileChooserDescriptorFactory.createSingleFileOrFolderDescriptor(), null, null) { file ->
+            pathToToolchainComboBox.select(file.pathAsPath)
+        }
+    }
+
     override fun getPreferredFocusedComponent(): JComponent = pathToToolchainComboBox
 
     override fun createCenterPanel(): JComponent {
@@ -97,7 +109,7 @@ class LinterNewToolchainDialog(private val toolchainFilter: Condition<Path>, pro
     }
 
     private fun onToolchainLocationChanged() {
-        model.toolchainLocation = pathToToolchainComboBox.selectedPath ?: ""
+        model.toolchainLocation = pathToToolchainComboBox.selected()?.toString() ?: ""
 
         model.toolchainVersion = LinterConfigurationUtil.guessToolchainVersion(model.toolchainLocation)
 

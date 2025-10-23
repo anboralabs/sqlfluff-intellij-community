@@ -6,10 +6,12 @@ import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.to
 import co.anbora.labs.sqlfluff.ide.ui.ExecuteWhenView
 import co.anbora.labs.sqlfluff.ide.ui.GlobalConfigView
 import co.anbora.labs.sqlfluff.ide.ui.PropertyTable
+import co.anbora.labs.sqlfluff.ide.utils.pathAsPath
 import co.anbora.labs.sqlfluff.ide.utils.toPath
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile.Companion.DBT_TEMPLATER
 import co.anbora.labs.sqlfluff.lint.LinterConfig
+import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
@@ -34,8 +36,9 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
     private val executeView = ExecuteWhenView(executeWhenBehavior())
 
     private val linterConfigPathField = LinterToolchainPathChoosingComboBox(
-        FileChooserDescriptorFactory.singleFile(),
-    ) { onToolchainLocationChanged() }
+        { getFileSelector() },
+        { onToolchainLocationChanged() }
+    )
 
     private val linterOptions = PropertyTable()
 
@@ -43,6 +46,12 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
 
     init {
         createUI()
+    }
+
+    private fun getFileSelector() {
+        FileChooser.chooseFile(FileChooserDescriptorFactory.singleFile(), null, null) { file ->
+            linterConfigPathField.select(file.pathAsPath)
+        }
     }
 
     private fun createUI() {
@@ -70,7 +79,7 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
     }
 
     private fun onToolchainLocationChanged() {
-        model.configPath = linterConfigPathField.selectedPath ?: ""
+        model.configPath = linterConfigPathField.selected()?.toString() ?: ""
     }
 
     private fun createFilterKnownToolchains(): Condition<Path> {
@@ -90,12 +99,12 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
 
         when (it) {
             LinterConfig.DISABLED -> {
-                linterConfigPathField.selectedPath = null
+                linterConfigPathField.select(null)
                 model.configPath = ""
                 linterOptions.setProperties(emptyMap())
             }
             LinterConfig.GLOBAL -> {
-                linterConfigPathField.selectedPath = DEFAULT_CONFIG_PATH.absolutePathString()
+                linterConfigPathField.select(DEFAULT_CONFIG_PATH)
                 model.configPath = DEFAULT_CONFIG_PATH.absolutePathString()
                 loadConfigFile(it, DEFAULT_CONFIG_PATH.toString())
             }
