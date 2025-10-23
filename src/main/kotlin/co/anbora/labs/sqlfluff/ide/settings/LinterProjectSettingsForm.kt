@@ -1,6 +1,5 @@
 package co.anbora.labs.sqlfluff.ide.settings
 
-import co.anbora.labs.sqlfluff.file.LinterFileType
 import co.anbora.labs.sqlfluff.ide.startup.InitConfigFiles.Companion.DEFAULT_CONFIG_PATH
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
@@ -17,9 +16,6 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Condition
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.util.ui.FormBuilder
-import com.intellij.util.ui.SwingHelper
-import com.intellij.util.ui.UIUtil
 import java.nio.file.Path
 import java.util.function.Consumer
 import javax.swing.BorderFactory
@@ -93,14 +89,27 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
         linterConfigPathField.isEnabled = LinterConfig.CUSTOM == it
 
         when (it) {
-            LinterConfig.DISABLED -> linterOptions.setProperties(emptyMap())
-            else -> {
-                val linterConfigFile = it.configPsiFile(project, model.configPath)
-                if (linterConfigFile != null) {
-                    linterOptions.setProperties(linterConfigFile.getProperties())
-                    callbackConfigFile(linterConfigFile)
-                }
+            LinterConfig.DISABLED -> {
+                linterConfigPathField.selectedPath = null
+                model.configPath = ""
+                linterOptions.setProperties(emptyMap())
             }
+            LinterConfig.GLOBAL -> {
+                linterConfigPathField.selectedPath = DEFAULT_CONFIG_PATH.absolutePathString()
+                model.configPath = DEFAULT_CONFIG_PATH.absolutePathString()
+                loadConfigFile(it, DEFAULT_CONFIG_PATH.toString())
+            }
+            else -> {
+                loadConfigFile(it, model.configPath)
+            }
+        }
+    }
+
+    private fun loadConfigFile(config: LinterConfig, configFilePath: String) {
+        val linterConfigFile = config.configPsiFile(project, configFilePath)
+        if (linterConfigFile != null) {
+            linterOptions.setProperties(linterConfigFile.getProperties())
+            callbackConfigFile(linterConfigFile)
         }
     }
 
@@ -118,38 +127,29 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
     }
 
     fun createComponent(): DialogPanel {
-
-        val lintFieldsWrapperBuilder = FormBuilder.createFormBuilder()
-            .setHorizontalGap(UIUtil.DEFAULT_HGAP)
-            .setVerticalGap(UIUtil.DEFAULT_VGAP)
-
-        lintFieldsWrapperBuilder
-            .addLabeledComponent("Config .sqlfluff path:", linterConfigPathField)
-
-
-        val builder = FormBuilder.createFormBuilder()
-            .setHorizontalGap(UIUtil.DEFAULT_HGAP)
-            .setVerticalGap(UIUtil.DEFAULT_VGAP)
-
-        val panel = builder
-            .addComponent(toolchainChooser)
-            .addComponent(globalConfigView.getComponent())
-            .addComponent(lintFieldsWrapperBuilder.panel)
-            .addComponent(linterOptions)
-            .addSeparator(4)
-            .addComponent(executeView.getComponent())
-            .addVerticalGap(4)
-            .panel
-
-        val centerPanel = SwingHelper.wrapWithHorizontalStretch(panel)
-        centerPanel.border = BorderFactory.createEmptyBorder(5, 0, 0, 0)
-
         return panel {
             row {
-                cell(centerPanel)
+                cell(toolchainChooser)
                     .align(AlignX.FILL)
             }
-        }
+            row {
+                cell(globalConfigView.getComponent())
+                    .align(AlignX.FILL)
+            }
+            row(".sqlfluff path:") {
+                cell(linterConfigPathField)
+                    .align(AlignX.FILL)
+            }
+            row {
+                cell(linterOptions)
+                    .align(AlignX.FILL)
+            }
+            separator()
+            row {
+                cell(executeView.getComponent())
+                    .align(AlignX.FILL)
+            }
+        }.withBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0))
     }
 
     fun reset() {

@@ -15,7 +15,8 @@ import kotlin.io.path.pathString
 
 class LoadConfigFile(
     private val project: Project,
-    private val configFile: Path
+    private val configFile: Path,
+    private val linterConfig: LinterConfig = LinterConfig.CUSTOM,
 ): NotificationAction("Load") {
 
     override fun actionPerformed(
@@ -26,7 +27,7 @@ class LoadConfigFile(
         toolchainSettings.setConfigPath(configFile.pathString)
         toolchainSettings.setLinterSettingOption(
             LinterToolchainService.LinterConfigSettings(
-                LinterConfig.CUSTOM,
+                linterConfig,
                 configFile.pathString,
                 true
             )

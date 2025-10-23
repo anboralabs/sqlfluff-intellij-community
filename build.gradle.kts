@@ -1,4 +1,5 @@
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
@@ -101,5 +102,11 @@ tasks {
 
     wrapper {
         gradleVersion = properties("gradleVersion").get()
+    }
+
+    compileKotlin {
+        compilerOptions {
+            freeCompilerArgs.set(listOf("-Xannotation-default-target=param-property"))
+        }
     }
 }

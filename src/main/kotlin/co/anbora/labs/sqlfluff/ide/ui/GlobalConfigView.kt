@@ -2,12 +2,12 @@ package co.anbora.labs.sqlfluff.ide.ui
 
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
 import co.anbora.labs.sqlfluff.lint.LinterConfig
-import com.intellij.ui.IdeBorderFactory
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBRadioButton
-import com.intellij.util.ui.FormBuilder
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.panel
 import java.util.function.Consumer
 import javax.swing.ButtonGroup
-import javax.swing.JPanel
 
 class GlobalConfigView(val changeListener: Consumer<LinterConfig>) {
 
@@ -42,18 +42,16 @@ class GlobalConfigView(val changeListener: Consumer<LinterConfig>) {
         }
     }
 
-    fun getComponent(): JPanel {
-        val formBuilder = FormBuilder.createFormBuilder()
-
-        formBuilder.addComponent(disableLint)
-            .addComponent(useGlobalLint)
-            .addComponent(useManualLint)
-
-        val panel = formBuilder.panel
-
-        panel.border = IdeBorderFactory.createTitledBorder("Global Config")
-
-        return panel
+    fun getComponent(): DialogPanel {
+        return panel {
+            group("Global Config") {
+                buttonsGroup {
+                    row { cell(disableLint) }
+                    row { cell(useGlobalLint) }
+                    row { cell(useManualLint) }
+                }
+            }
+        }
     }
 
     private fun selectLinter(linter: LinterConfig) {
