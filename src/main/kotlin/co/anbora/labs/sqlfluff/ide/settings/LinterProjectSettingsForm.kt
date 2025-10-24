@@ -1,31 +1,30 @@
 package co.anbora.labs.sqlfluff.ide.settings
 
-import co.anbora.labs.sqlfluff.file.LinterFileType
 import co.anbora.labs.sqlfluff.ide.startup.InitConfigFiles.Companion.DEFAULT_CONFIG_PATH
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterExecutionService
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState
-import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
 import co.anbora.labs.sqlfluff.ide.ui.ExecuteWhenView
 import co.anbora.labs.sqlfluff.ide.ui.GlobalConfigView
 import co.anbora.labs.sqlfluff.ide.ui.PropertyTable
+import co.anbora.labs.sqlfluff.ide.utils.pathAsPath
 import co.anbora.labs.sqlfluff.ide.utils.toPath
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile.Companion.DBT_TEMPLATER
 import co.anbora.labs.sqlfluff.lint.LinterConfig
+import com.intellij.openapi.components.service
+import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Condition
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.util.ui.FormBuilder
-import com.intellij.util.ui.SwingHelper
-import com.intellij.util.ui.UIUtil
 import java.nio.file.Path
 import java.util.function.Consumer
 import javax.swing.BorderFactory
 import kotlin.io.path.absolutePathString
 
-class LinterProjectSettingsForm(private val project: Project?, private val model: Model) {
+class LinterProjectSettingsForm(private val project: Project, private val model: Model) {
 
     data class Model(
         var homeLocation: String,
@@ -34,12 +33,15 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
         var executeWhenSave: Boolean
     )
 
-    private val globalConfigView = GlobalConfigView(enableLinterBehavior())
-    private val executeView = ExecuteWhenView(executeWhenBehavior())
+    private val settings = project.service<LinterExecutionService>()
+
+    private val globalConfigView = GlobalConfigView(enableLinterBehavior(), settings)
+    private val executeView = ExecuteWhenView(executeWhenBehavior(), settings)
 
     private val linterConfigPathField = LinterToolchainPathChoosingComboBox(
-        FileChooserDescriptorFactory.singleFile(),
-    ) { onToolchainLocationChanged() }
+        { getFileSelector() },
+        { onToolchainLocationChanged() }
+    )
 
     private val linterOptions = PropertyTable()
 
@@ -49,12 +51,18 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
         createUI()
     }
 
+    private fun getFileSelector() {
+        FileChooser.chooseFile(FileChooserDescriptorFactory.singleFile(), null, null) { file ->
+            linterConfigPathField.select(file.pathAsPath)
+        }
+    }
+
     private fun createUI() {
         // setup initial location
         model.homeLocation = toolchainChooser.selectedToolchain()?.location ?: ""
 
         linterConfigPathField.addToolchainsAsync {
-            listOf(toolchainSettings.configLocation.toPath())
+            listOf(settings.configLocation.toPath())
         }
         linterOptions.disableWidget()
     }
@@ -74,7 +82,7 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
     }
 
     private fun onToolchainLocationChanged() {
-        model.configPath = linterConfigPathField.selectedPath ?: ""
+        model.configPath = linterConfigPathField.selected()?.toString() ?: ""
     }
 
     private fun createFilterKnownToolchains(): Condition<Path> {
@@ -93,14 +101,27 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
         linterConfigPathField.isEnabled = LinterConfig.CUSTOM == it
 
         when (it) {
-            LinterConfig.DISABLED -> linterOptions.setProperties(emptyMap())
-            else -> {
-                val linterConfigFile = it.configPsiFile(project, model.configPath)
-                if (linterConfigFile != null) {
-                    linterOptions.setProperties(linterConfigFile.getProperties())
-                    callbackConfigFile(linterConfigFile)
-                }
+            LinterConfig.DISABLED -> {
+                linterConfigPathField.select(null)
+                model.configPath = ""
+                linterOptions.setProperties(emptyMap())
             }
+            LinterConfig.GLOBAL -> {
+                linterConfigPathField.select(DEFAULT_CONFIG_PATH)
+                model.configPath = DEFAULT_CONFIG_PATH.absolutePathString()
+                loadConfigFile(it, DEFAULT_CONFIG_PATH.toString())
+            }
+            else -> {
+                loadConfigFile(it, model.configPath)
+            }
+        }
+    }
+
+    private fun loadConfigFile(config: LinterConfig, configFilePath: String) {
+        val linterConfigFile = config.configPsiFile(project, configFilePath)
+        if (linterConfigFile != null) {
+            linterOptions.setProperties(linterConfigFile.getProperties())
+            callbackConfigFile(linterConfigFile)
         }
     }
 
@@ -118,38 +139,31 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
     }
 
     fun createComponent(): DialogPanel {
-
-        val lintFieldsWrapperBuilder = FormBuilder.createFormBuilder()
-            .setHorizontalGap(UIUtil.DEFAULT_HGAP)
-            .setVerticalGap(UIUtil.DEFAULT_VGAP)
-
-        lintFieldsWrapperBuilder
-            .addLabeledComponent("Config .sqlfluff path:", linterConfigPathField)
-
-
-        val builder = FormBuilder.createFormBuilder()
-            .setHorizontalGap(UIUtil.DEFAULT_HGAP)
-            .setVerticalGap(UIUtil.DEFAULT_VGAP)
-
-        val panel = builder
-            .addComponent(toolchainChooser)
-            .addComponent(globalConfigView.getComponent())
-            .addComponent(lintFieldsWrapperBuilder.panel)
-            .addComponent(linterOptions)
-            .addSeparator(4)
-            .addComponent(executeView.getComponent())
-            .addVerticalGap(4)
-            .panel
-
-        val centerPanel = SwingHelper.wrapWithHorizontalStretch(panel)
-        centerPanel.border = BorderFactory.createEmptyBorder(5, 0, 0, 0)
-
         return panel {
             row {
-                cell(centerPanel)
+                cell(toolchainChooser)
                     .align(AlignX.FILL)
             }
-        }
+            row {
+                cell(globalConfigView.getComponent())
+                    .align(AlignX.FILL)
+            }
+            group(".sqlfluff path:") {
+                row {
+                    cell(linterConfigPathField)
+                        .align(AlignX.FILL)
+                }
+            }
+            row {
+                cell(linterOptions)
+                    .align(AlignX.FILL)
+            }
+            separator()
+            row {
+                cell(executeView.getComponent())
+                    .align(AlignX.FILL)
+            }
+        }.withBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0))
     }
 
     fun reset() {

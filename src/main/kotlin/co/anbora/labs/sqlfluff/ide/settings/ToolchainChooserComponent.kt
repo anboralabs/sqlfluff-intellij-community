@@ -5,6 +5,7 @@ import co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ComponentWithBrowseButton
+import com.intellij.openapi.ui.getPresentablePath
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import java.awt.event.ActionListener
@@ -48,7 +49,7 @@ class ToolchainChooserComponent(browseActionListener: ActionListener, onSelectAc
                 icon = LinterIcons.SQL_FLUFF_16
                 append(value.version)
                 append("  ")
-                append(value.location, SimpleTextAttributes.GRAYED_ATTRIBUTES)
+                append(getPresentablePath(value.location), SimpleTextAttributes.GRAYED_ATTRIBUTES)
             }
         }
 

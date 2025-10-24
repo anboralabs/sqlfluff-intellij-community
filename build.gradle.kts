@@ -1,4 +1,5 @@
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
@@ -6,7 +7,7 @@ fun environment(key: String) = providers.environmentVariable(key)
 plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "2.2.0"
-    id("org.jetbrains.intellij.platform") version "2.9.0"
+    id("org.jetbrains.intellij.platform") version "2.10.2"
 }
 
 group = properties("pluginGroup").get()
@@ -101,5 +102,11 @@ tasks {
 
     wrapper {
         gradleVersion = properties("gradleVersion").get()
+    }
+
+    compileKotlin {
+        compilerOptions {
+            freeCompilerArgs.set(listOf("-Xannotation-default-target=param-property"))
+        }
     }
 }
