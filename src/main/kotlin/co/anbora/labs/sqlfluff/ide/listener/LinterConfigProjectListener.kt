@@ -2,6 +2,7 @@ package co.anbora.labs.sqlfluff.ide.listener
 
 import co.anbora.labs.sqlfluff.file.LinterFileType
 import co.anbora.labs.sqlfluff.ide.actions.LoadConfigFile
+import co.anbora.labs.sqlfluff.ide.actions.UseDefaultConfig
 import co.anbora.labs.sqlfluff.ide.notifications.LinterNotifications
 import co.anbora.labs.sqlfluff.ide.startup.InitConfigFiles
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterExecutionService
@@ -9,6 +10,7 @@ import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.to
 import co.anbora.labs.sqlfluff.ide.utils.toPathOrNull
 import co.anbora.labs.sqlfluff.lint.LinterConfig
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
@@ -32,35 +34,48 @@ class LinterConfigProjectListener: ProjectActivity {
         val previousConfigFile = toolchainExecutionSettings.configLocation.toPathOrNull()
 
         if (toolchainSettings.toolchain().isValid()) {
-            if (configFile != null && configFile.exists()
-                && isConfigFileCreated(toolchainExecutionSettings, configFile)) {
-                val notification = LinterNotifications.createNotification(
-                    "Sqlfluff Linter",
-                    "Detected .sqlfluff config file",
-                    NotificationType.INFORMATION,
-                    LoadConfigFile(project, configFile)
-                )
-                LinterNotifications.showNotification(notification, project)
-            } else if (shouldUseGlobalConfiguration(toolchainExecutionSettings, previousConfigFile)) {
-                val notification = LinterNotifications.createNotification(
-                    "Sqlfluff Linter",
-                    "Please setup default .sqlfluff config file",
-                    NotificationType.INFORMATION,
-                    LoadConfigFile(project, InitConfigFiles.DEFAULT_CONFIG_PATH, LinterConfig.GLOBAL)
-                )
-                LinterNotifications.showNotification(notification, project)
-            }
 
-            if (configFile != null && isNewConfigFileDetected(toolchainExecutionSettings, configFile)) {
-                val notification = LinterNotifications.createNotification(
-                    "Sqlfluff Linter",
-                    "Detected .sqlfluff config file",
-                    NotificationType.INFORMATION,
-                    LoadConfigFile(project, configFile)
-                )
-                LinterNotifications.showNotification(notification, project)
+            when {
+                isLinterCustomEnabled(configFile, toolchainExecutionSettings) -> {
+                    showConfigFileNotification("Detected .sqlfluff config file", project, configFile!!, LinterConfig.CUSTOM)
+                }
+                configFile != null && isNewConfigFileDetected(toolchainExecutionSettings, configFile) -> {
+                    showConfigFileNotification("Detected .sqlfluff config file", project, configFile, LinterConfig.CUSTOM,
+                        UseDefaultConfig(project)
+                    )
+                }
+                shouldUseGlobalConfiguration(toolchainExecutionSettings, previousConfigFile) -> {
+                    showConfigFileNotification(
+                        "Please setup default .sqlfluff config file",
+                        project,
+                        InitConfigFiles.DEFAULT_CONFIG_PATH,
+                        LinterConfig.GLOBAL
+                    )
+                }
             }
         }
+    }
+
+    private fun isLinterCustomEnabled(
+        configFile: Path?,
+        toolchainExecutionSettings: LinterExecutionService
+    ): Boolean = (configFile != null && configFile.exists()
+            && isConfigFileCreated(toolchainExecutionSettings, configFile))
+
+    private fun showConfigFileNotification(
+        message: String,
+        project: Project,
+        configFile: Path,
+        linterConfig: LinterConfig,
+        vararg actions: AnAction
+    ) {
+        val notification = LinterNotifications.createNotification(
+            "Sqlfluff Linter",
+            message,
+            NotificationType.INFORMATION,
+            LoadConfigFile(project, configFile, linterConfig), *actions
+        )
+        LinterNotifications.showNotification(notification, project)
     }
 
     private fun isNewConfigFileDetected(
