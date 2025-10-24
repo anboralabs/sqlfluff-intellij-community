@@ -2,6 +2,7 @@ package co.anbora.labs.sqlfluff.ide.toolchain
 
 import co.anbora.labs.sqlfluff.lint.LinterConfig
 import com.intellij.openapi.components.*
+import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.Attribute
 
@@ -10,7 +11,9 @@ import com.intellij.util.xmlb.annotations.Attribute
     name = "Sqlfluff Toolchain",
     storages = [Storage("NewSqlFluffExecutionsHome.xml")]
 )
-class LinterExecutionService: PersistentStateComponent<LinterExecutionService.ToolchainState?> {
+class LinterExecutionService(
+    private val project: Project
+): PersistentStateComponent<LinterExecutionService.ToolchainState?> {
     private var state = ToolchainState()
 
     val linter: LinterConfig
