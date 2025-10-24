@@ -4,7 +4,7 @@ import co.anbora.labs.sqlfluff.LinterConfigLanguage.LANGUAGE_DEMO_TEXT
 import co.anbora.labs.sqlfluff.ide.actions.Setup
 import co.anbora.labs.sqlfluff.ide.discovery.LinterDiscoveryFlavor
 import co.anbora.labs.sqlfluff.ide.notifications.LinterNotifications
-import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
@@ -27,7 +27,6 @@ class InitConfigFiles: ProjectActivity {
 
         checkDefaultConfigFile()
 
-        val toolchainSettings = LinterToolchainService.toolchainSettings
         if (!toolchainSettings.cachedToolchain().isValid()) {
             val notification = LinterNotifications.createNotification(
                 "Linter",

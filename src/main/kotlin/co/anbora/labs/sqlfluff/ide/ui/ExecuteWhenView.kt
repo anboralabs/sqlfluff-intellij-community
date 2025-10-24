@@ -1,14 +1,16 @@
 package co.anbora.labs.sqlfluff.ide.ui
 
-import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
-import com.intellij.ui.IdeBorderFactory
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterExecutionService
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBRadioButton
-import com.intellij.util.ui.FormBuilder
+import com.intellij.ui.dsl.builder.panel
 import java.util.function.Consumer
 import javax.swing.ButtonGroup
-import javax.swing.JPanel
 
-class ExecuteWhenView(val changeListener: Consumer<Boolean>) {
+class ExecuteWhenView(
+    val changeListener: Consumer<Boolean>,
+    private val settings: LinterExecutionService
+) {
 
     private lateinit var executeWhenTyping: JBRadioButton
     private lateinit var executeWhenSave: JBRadioButton
@@ -34,17 +36,15 @@ class ExecuteWhenView(val changeListener: Consumer<Boolean>) {
         }
     }
 
-    fun getComponent(): JPanel {
-        val formBuilder = FormBuilder.createFormBuilder()
-
-        formBuilder.addComponent(executeWhenTyping)
-            .addComponent(executeWhenSave)
-
-        val panel = formBuilder.panel
-
-        panel.border = IdeBorderFactory.createTitledBorder("Execute When")
-
-        return panel
+    fun getComponent(): DialogPanel {
+        return panel {
+            group("Execute When") {
+                buttonsGroup {
+                    row { cell(executeWhenTyping) }
+                    row { cell(executeWhenSave) }
+                }
+            }
+        }
     }
 
     fun selectExecution(onSave: Boolean) {
@@ -59,7 +59,6 @@ class ExecuteWhenView(val changeListener: Consumer<Boolean>) {
     }
 
     fun reset() {
-        val settings = toolchainSettings
         selectExecution(settings.executeWhenSave)
     }
 }

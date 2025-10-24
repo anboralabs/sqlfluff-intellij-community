@@ -1,12 +1,14 @@
 package co.anbora.labs.sqlfluff.ide.actions
 
 import co.anbora.labs.sqlfluff.ide.notifications.LinterNotifications
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterExecutionService
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService
 import co.anbora.labs.sqlfluff.lint.LinterConfig
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -23,10 +25,10 @@ class LoadConfigFile(
         e: AnActionEvent,
         notification: Notification
     ) {
-        val toolchainSettings = LinterToolchainService.toolchainSettings
+        val toolchainSettings = project.service<LinterExecutionService>()
         toolchainSettings.setConfigPath(configFile.pathString)
         toolchainSettings.setLinterSettingOption(
-            LinterToolchainService.LinterConfigSettings(
+            LinterExecutionService.LinterConfigSettings(
                 linterConfig,
                 configFile.pathString,
                 true

@@ -1,8 +1,8 @@
 package co.anbora.labs.sqlfluff.ide.settings
 
 import co.anbora.labs.sqlfluff.ide.startup.InitConfigFiles.Companion.DEFAULT_CONFIG_PATH
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterExecutionService
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState
-import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
 import co.anbora.labs.sqlfluff.ide.ui.ExecuteWhenView
 import co.anbora.labs.sqlfluff.ide.ui.GlobalConfigView
 import co.anbora.labs.sqlfluff.ide.ui.PropertyTable
@@ -11,6 +11,7 @@ import co.anbora.labs.sqlfluff.ide.utils.toPath
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile.Companion.DBT_TEMPLATER
 import co.anbora.labs.sqlfluff.lint.LinterConfig
+import com.intellij.openapi.components.service
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
@@ -23,7 +24,7 @@ import java.util.function.Consumer
 import javax.swing.BorderFactory
 import kotlin.io.path.absolutePathString
 
-class LinterProjectSettingsForm(private val project: Project?, private val model: Model) {
+class LinterProjectSettingsForm(private val project: Project, private val model: Model) {
 
     data class Model(
         var homeLocation: String,
@@ -32,8 +33,10 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
         var executeWhenSave: Boolean
     )
 
-    private val globalConfigView = GlobalConfigView(enableLinterBehavior())
-    private val executeView = ExecuteWhenView(executeWhenBehavior())
+    private val settings = project.service<LinterExecutionService>()
+
+    private val globalConfigView = GlobalConfigView(enableLinterBehavior(), settings)
+    private val executeView = ExecuteWhenView(executeWhenBehavior(), settings)
 
     private val linterConfigPathField = LinterToolchainPathChoosingComboBox(
         { getFileSelector() },
@@ -59,7 +62,7 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
         model.homeLocation = toolchainChooser.selectedToolchain()?.location ?: ""
 
         linterConfigPathField.addToolchainsAsync {
-            listOf(toolchainSettings.configLocation.toPath())
+            listOf(settings.configLocation.toPath())
         }
         linterOptions.disableWidget()
     }
@@ -145,9 +148,11 @@ class LinterProjectSettingsForm(private val project: Project?, private val model
                 cell(globalConfigView.getComponent())
                     .align(AlignX.FILL)
             }
-            row(".sqlfluff path:") {
-                cell(linterConfigPathField)
-                    .align(AlignX.FILL)
+            group(".sqlfluff path:") {
+                row {
+                    cell(linterConfigPathField)
+                        .align(AlignX.FILL)
+                }
             }
             row {
                 cell(linterOptions)

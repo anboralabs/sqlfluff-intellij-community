@@ -1,15 +1,17 @@
 package co.anbora.labs.sqlfluff.ide.ui
 
-import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterExecutionService
 import co.anbora.labs.sqlfluff.lint.LinterConfig
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBRadioButton
-import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
 import java.util.function.Consumer
 import javax.swing.ButtonGroup
 
-class GlobalConfigView(val changeListener: Consumer<LinterConfig>) {
+class GlobalConfigView(
+    val changeListener: Consumer<LinterConfig>,
+    private val settings: LinterExecutionService
+) {
 
     private lateinit var disableLint: JBRadioButton
     private lateinit var useGlobalLint: JBRadioButton
@@ -62,7 +64,6 @@ class GlobalConfigView(val changeListener: Consumer<LinterConfig>) {
     }
 
     fun reset() {
-        val settings = toolchainSettings
         selectLinter(settings.linter)
     }
 }

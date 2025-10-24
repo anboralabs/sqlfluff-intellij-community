@@ -1,9 +1,10 @@
 package co.anbora.labs.sqlfluff.ide.settings
 
-import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterExecutionService
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchain
-import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService
+import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
 import co.anbora.labs.sqlfluff.lint.LinterConfig
+import com.intellij.openapi.components.service
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.ShowSettingsUtil
@@ -22,6 +23,8 @@ class LinterProjectSettingsConfigurable(private val project: Project) : Configur
     )
     private val settingsForm = LinterProjectSettingsForm(project, model)
 
+    val settings = project.service<LinterExecutionService>()
+
     init {
         mainPanel = settingsForm.createComponent()
     }
@@ -33,8 +36,7 @@ class LinterProjectSettingsConfigurable(private val project: Project) : Configur
     override fun isModified(): Boolean {
         mainPanel.apply()
 
-        val settings = toolchainSettings
-        return model.homeLocation != settings.toolchainLocation
+        return model.homeLocation != toolchainSettings.toolchainLocation
                 || model.executeWhenSave != settings.executeWhenSave
                 || model.linter != settings.linter
                 || model.configPath != settings.configLocation
@@ -45,10 +47,9 @@ class LinterProjectSettingsConfigurable(private val project: Project) : Configur
 
         validateSettings()
 
-        val settings = toolchainSettings
-        settings.setToolchain(LinterToolchain.fromPath(model.homeLocation))
+        toolchainSettings.setToolchain(LinterToolchain.fromPath(model.homeLocation))
         settings.setLinterSettingOption(
-            LinterToolchainService.LinterConfigSettings(
+            LinterExecutionService.LinterConfigSettings(
                 model.linter,
                 model.configPath,
                 model.executeWhenSave
@@ -64,10 +65,8 @@ class LinterProjectSettingsConfigurable(private val project: Project) : Configur
     }
 
     override fun reset() {
-        val settings = toolchainSettings
-
         with(model) {
-            homeLocation = settings.toolchainLocation
+            homeLocation = toolchainSettings.toolchainLocation
             linter = settings.linter
             configPath = settings.configLocation
             executeWhenSave = settings.executeWhenSave
