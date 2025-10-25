@@ -1,5 +1,6 @@
 package co.anbora.labs.sqlfluff.ide.toolchain
 
+import co.anbora.labs.sqlfluff.lint.LinterConfig
 import com.intellij.openapi.components.*
 import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.Attribute
@@ -12,6 +13,29 @@ class LinterToolchainService: PersistentStateComponent<LinterToolchainService.To
     private var state = ToolchainState()
     val toolchainLocation: String
         get() = state.toolchainLocation
+
+    val linter: LinterConfig
+        get() = state.linter
+    val configLocation: String
+        get() = state.configPath
+    val executeWhenSave: Boolean
+        get() = state.executeWhenSave
+
+    fun setLinterSettingOption(options: LinterConfigSettings) {
+        state.linter = options.linter
+        state.configPath = options.configPath
+        state.executeWhenSave = options.executeWhenSave
+    }
+
+    fun setConfigPath(configPath: String) {
+        state.configPath = configPath
+    }
+
+    class LinterConfigSettings(
+        val linter: LinterConfig,
+        val configPath: String,
+        val executeWhenSave: Boolean
+    )
 
     @Volatile
     private var toolchain: LinterToolchain = LinterToolchain.NULL
@@ -54,6 +78,13 @@ class LinterToolchainService: PersistentStateComponent<LinterToolchainService.To
         var toolchainLocation: String = ""
         @Attribute("version")
         var toolchainVersion: String = ""
+
+        @Attribute("linter")
+        var linter: LinterConfig = LinterConfig.GLOBAL
+        @Attribute("configPath")
+        var configPath: String = ""
+        @Attribute("executeWhenSave")
+        var executeWhenSave: Boolean = true
 
         fun isValid(): Boolean {
             return toolchainVersion.isNotEmpty() && toolchainLocation.isNotEmpty()
