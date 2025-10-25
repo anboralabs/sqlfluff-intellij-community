@@ -56,6 +56,8 @@
         <applicationService serviceImplementation="co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState"/>
         <applicationService serviceImplementation="co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService"/>
 
+        <projectService serviceImplementation="co.anbora.labs.sqlfluff.ide.toolchain.LinterExecutionService"/>
+
         <postStartupActivity implementation="co.anbora.labs.sqlfluff.ide.startup.InitConfigFiles"/>
     </extensions>
 

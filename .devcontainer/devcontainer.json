@@ -1,21 +1,25 @@
 {
+  "name": "sqlfluff community Plugin",
   "hostRequirements": {
-   "cpus": 4,
-   "memory": "16gb",
-   "storage": "32gb"
+    "cpus": 4,
+    "memory": "16gb",
+    "storage": "80gb"
   },
-  "image": "mcr.microsoft.com/vscode/devcontainers/base:ubuntu-22.04",
-  "features": {
-    "ghcr.io/devcontainers/features/java:1": {
-      "jdkDistro": "jbr",
-      "version": "17.0.10"
-    },
-    "ghcr.io/devcontainers/features/desktop-lite:1": {},
-    "ghcr.io/devcontainers/features/sshd:1": {
-        "version": "latest"
+  "build": {
+    "context": "..",
+    "dockerfile": "../.gitpod.Dockerfile"
+  },
+  "customizations": {
+    "jetbrains": {
+      "plugins": [
+        "DevKit",
+        "org.jetbrains.junie"
+      ]
     }
   },
-  "forwardPorts": [6080],
+  "forwardPorts": [
+    6080
+  ],
   "portsAttributes": {
     "6080": {
       "label": "desktop"

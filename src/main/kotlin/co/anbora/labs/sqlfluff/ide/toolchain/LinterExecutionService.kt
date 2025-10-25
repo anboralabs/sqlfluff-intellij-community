@@ -6,7 +6,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.xmlb.XmlSerializerUtil
 import com.intellij.util.xmlb.annotations.Attribute
 
-@Service(Service.Level.PROJECT)
 @State(
     name = "Sqlfluff Toolchain",
     storages = [Storage("NewSqlFluffExecutionsHome.xml")]
