@@ -1,4 +1,5 @@
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun properties(key: String) = providers.gradleProperty(key)
@@ -6,7 +7,7 @@ fun environment(key: String) = providers.environmentVariable(key)
 
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "2.2.0"
+    id("org.jetbrains.kotlin.jvm") version "2.2.20"
     id("org.jetbrains.intellij.platform") version "2.11.0"
 }
 
@@ -40,9 +41,10 @@ dependencies {
         plugins(properties("platformPlugins").map { it.split(',') })
 
         pluginVerifier()
-        // testFramework(TestFrameworkType.Platform.JUnit4)
+        testFramework(TestFrameworkType.Platform)
     }
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
+    testImplementation("junit:junit:4.13.2")
 }
 
 // Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
