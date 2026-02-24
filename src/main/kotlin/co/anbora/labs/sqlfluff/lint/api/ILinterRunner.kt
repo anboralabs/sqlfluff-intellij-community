@@ -2,13 +2,10 @@ package co.anbora.labs.sqlfluff.lint.api
 
 import co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator
 import co.anbora.labs.sqlfluff.ide.annotator.NO_PROBLEMS_FOUND
-import co.anbora.labs.sqlfluff.ide.lang.psi.PsiFinderFlavor
-import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixFlavor
 import co.anbora.labs.sqlfluff.ide.runner.CommandLineRunner
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchain
 import co.anbora.labs.sqlfluff.lint.LinterCommands
 import co.anbora.labs.sqlfluff.lint.exception.LinterException
-import co.anbora.labs.sqlfluff.lint.issue.FileIssue
 import co.anbora.labs.sqlfluff.lint.issue.Issue
 import co.anbora.labs.sqlfluff.lint.issue.IssueMapper
 import co.anbora.labs.sqlfluff.lint.issue.LinterIssueMapper
