@@ -23,6 +23,19 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
+data class CommandLineParams(
+    val toolchain: LinterToolchain,
+    val configPath: String,
+    val workDirectory: Path?,
+    val filePath: String
+)
+
+data class ScanParams(
+    val commandLine: GeneralCommandLine,
+    val filePath: String,
+    val stdinText: String?
+)
+
 abstract class ILinterRunner : ILintExecutor {
 
     companion object {
@@ -49,8 +62,11 @@ abstract class ILinterRunner : ILintExecutor {
         val filePath = getFilePath(state)
         val stdinText = getStdinText(state)
 
-        val commandLine = buildCommandLine(toolchain, configPath, workDirectory, filePath)
-        val issues = scan(commandLine, stdinText)
+        val params = CommandLineParams(toolchain, configPath, workDirectory, filePath)
+        val commandLine = buildCommandLine(params)
+
+        val scanParams = ScanParams(commandLine, filePath, stdinText)
+        val issues = scan(scanParams)
 
         val psiFile = state.psiWithDocument.first
         val document = state.psiWithDocument.second
@@ -74,23 +90,18 @@ abstract class ILinterRunner : ILintExecutor {
         return LinterExternalAnnotator.Results(problems[psiFile] ?: emptyList())
     }
 
-    protected fun buildCommandLine(
-        toolchain: LinterToolchain,
-        configPath: String,
-        workDirectory: Path?,
-        filePath: String
-    ): GeneralCommandLine {
-        val commandLine = GeneralCommandLine(toolchain.binPath())
+    protected fun buildCommandLine(params: CommandLineParams): GeneralCommandLine {
+        val commandLine = GeneralCommandLine(params.toolchain.binPath())
         commandLine.charset = StandardCharsets.UTF_8
         commandLine.addParameter(LinterCommands.LINT_COMMAND)
 
-        addFileParameters(commandLine, filePath)
+        addFileParameters(commandLine, params.filePath)
 
         commandLine.addParameter("--config")
-        commandLine.addParameter(configPath)
+        commandLine.addParameter(params.configPath)
         commandLine.addParameter("--format")
         commandLine.addParameter("json")
-        commandLine.setWorkDirectory(workDirectory?.toFile())
+        commandLine.setWorkDirectory(params.workDirectory?.toFile())
 
         return commandLine
     }
@@ -101,14 +112,14 @@ abstract class ILinterRunner : ILintExecutor {
 
     protected open fun getStdinText(state: LinterExternalAnnotator.State): String? = null
 
-    private fun scan(commandLine: GeneralCommandLine, stdinText: String?): List<Issue> {
-        val processOutput = CommandLineRunner.execute(commandLine, TIME_OUT, stdinText)
+    private fun scan(scanParams: ScanParams): List<Issue> {
+        val processOutput = CommandLineRunner.execute(scanParams.commandLine, TIME_OUT, scanParams.stdinText)
         if (isOkExecution(processOutput)) {
             val fileIssues = processOutput.stdoutLines.flatMap {
                 LinterIssueMapper.apply(it)
             }
             return fileIssues.flatMap {
-                IssueMapper.apply(it)
+                IssueMapper.apply(it, scanParams)
             }
         }
         throw LinterException(processOutput.stdout)
