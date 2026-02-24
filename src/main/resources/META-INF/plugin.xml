@@ -1,6 +1,6 @@
 <idea-plugin>
     <id>co.anbora.labs.sqlfluff</id>
-    <name>Sqlfluff Linter (Community Edition)</name>
+    <name>SQLFluff Linter (Community Edition)</name>
     <vendor email="support@anbora.co" url="https://labs.anbora.co">Anbora-labs</vendor>
 
     <!-- Product and plugin compatibility requirements.
@@ -8,7 +8,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.jetbrains.plugins.ini4idea</depends>
 
-    <resource-bundle>co.anbora.labs.sqlfluff.Sqlfluff</resource-bundle>
+    <resource-bundle>co.anbora.labs.sqlfluff.messages</resource-bundle>
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
@@ -34,7 +34,7 @@
 
         <projectConfigurable
                 groupId="tools"
-                displayName="Sqlfluff Linter"
+                key="configurable.display-name"
                 id="preference.SqlFluffLinterConfigurable"
                 instance="co.anbora.labs.sqlfluff.ide.settings.LinterProjectSettingsConfigurable" />
         <externalAnnotator language="" implementationClass="co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator"/>
@@ -43,12 +43,11 @@
                          id="co.anbora.labs.sqlfluff.ide.inspection.LinterInspection"
                          level="WEAK WARNING"
                          enabledByDefault="true"
-                         displayName="Sqlfluff lint"
                          key="inspection.display-name"
                          groupKey="inspection.group"/>
 
-        <notificationGroup id="sql.fluff.notification" displayType="BALLOON"/>
-        <notificationGroup id="sql.fluff.notification.license" displayType="BALLOON"/>
+        <notificationGroup id="sql.fluff.notification" displayType="BALLOON" key="notification.group.sql.fluff"/>
+        <notificationGroup id="sql.fluff.notification.license" displayType="BALLOON" key="notification.group.sql.fluff.license"/>
 
         <applicationService serviceImplementation="co.anbora.labs.sqlfluff.ide.toolchain.LinterKnownToolchainsState"/>
         <applicationService serviceImplementation="co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService"/>
@@ -91,19 +90,17 @@
         <action
             id="co.anbora.labs.sqlfluff.ide.actions.Setup"
             class="co.anbora.labs.sqlfluff.ide.actions.Setup"
-            text="Setup"
         />
         
         <!-- Grupo SQLFluff dentro de Tools -->
-        <group id="co.anbora.labs.sqlfluff.actions.ToolsSqlfluffGroup" popup="true" text="SQLFluff">
+        <group id="co.anbora.labs.sqlfluff.actions.ToolsSqlfluffGroup" popup="true">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
 
             <!-- Toggle Linter Status directamente en SQLFluff -->
             <action
                 id="co.anbora.labs.sqlfluff.ide.actions.ToggleLinterStatusWidgetAction"
                 class="co.anbora.labs.sqlfluff.ide.actions.ToggleLinterStatusWidgetAction"
-                text="Linter Status"
-                description="Show or hide the SQLFluff status widget in the status bar"/>
+        />
         </group>
     </actions>
 </idea-plugin>

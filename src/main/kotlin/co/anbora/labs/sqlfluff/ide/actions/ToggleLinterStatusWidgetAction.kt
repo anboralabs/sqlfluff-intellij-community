@@ -10,7 +10,7 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.wm.impl.status.widget.StatusBarWidgetsManager
 import kotlin.jvm.java
 
-class ToggleLinterStatusWidgetAction : ToggleAction("Linter Status"), DumbAware {
+class ToggleLinterStatusWidgetAction : ToggleAction(), DumbAware {
     override fun isSelected(e: AnActionEvent): Boolean {
         val project = e.project ?: return false
         return project.service<LinterStatusSettings>().showWidget
