@@ -40,7 +40,6 @@
         <externalAnnotator language="" implementationClass="co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator"/>
         <localInspection implementationClass="co.anbora.labs.sqlfluff.ide.inspection.LinterInspection"
                          language=""
-                         shortName="SqlfluffLinter"
                          id="co.anbora.labs.sqlfluff.ide.inspection.LinterInspection"
                          level="WEAK WARNING"
                          enabledByDefault="true"

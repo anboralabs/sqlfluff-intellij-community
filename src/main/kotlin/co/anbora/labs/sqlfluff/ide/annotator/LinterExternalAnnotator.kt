@@ -158,6 +158,8 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
             problem.createAnnotation(holder)
         }
     }
+
+    override fun getPairedBatchInspectionShortName(): String = "Linter"
 }
 
 val NO_PROBLEMS_FOUND: LinterExternalAnnotator.Results = LinterExternalAnnotator.Results(emptyList())
