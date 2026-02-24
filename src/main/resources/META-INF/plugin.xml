@@ -13,8 +13,6 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <treeStructureProvider
-                implementation="co.anbora.labs.sqlfluff.ide.projectView.TempSQLTreeStructureProvider"/>
         <fileType name="sqlfluff config" implementationClass="co.anbora.labs.sqlfluff.file.LinterFileType"
                   fieldName="INSTANCE" language="sql_fluff_config" patterns=".sqlfluff"/>
         <lang.parserDefinition language="sql_fluff_config"
@@ -63,6 +61,11 @@
         <statusBarWidgetFactory
                 implementation="co.anbora.labs.sqlfluff.ide.widget.LinterStatusWidgetFactory" id="sqlfluff.linter.status.widget.factory"/>
     </extensions>
+
+    <projectListeners>
+        <listener class="co.anbora.labs.sqlfluff.ide.listener.SqlFileSaveListener"
+                  topic="com.intellij.openapi.fileEditor.FileDocumentManagerListener"/>
+    </projectListeners>
 
     <extensions defaultExtensionNs="co.anbora.labs.sqlfluff">
         <discovery implementation="co.anbora.labs.sqlfluff.ide.discovery.flavor.LinterWinDiscovery" />

@@ -1,9 +1,9 @@
 package co.anbora.labs.sqlfluff.lint.issue
 
-import co.anbora.labs.sqlfluff.lint.SQL_FLUFF
 import com.intellij.lang.annotation.HighlightSeverity
 import java.util.regex.Pattern
 
+const val SQL_FLUFF = "sqlfluff"
 private val GENERAL_PATTERN = Pattern.compile("(\\w+\\d+)")
 
 data class Issue(
