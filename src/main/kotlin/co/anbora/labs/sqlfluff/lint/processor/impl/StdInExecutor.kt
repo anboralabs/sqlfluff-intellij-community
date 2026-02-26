@@ -5,6 +5,7 @@ import co.anbora.labs.sqlfluff.lint.api.ILinterRunner
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.toNioPathOrNull
 
 @Service(Service.Level.PROJECT)
 class StdInExecutor(val project: Project) : ILinterRunner() {
@@ -16,7 +17,8 @@ class StdInExecutor(val project: Project) : ILinterRunner() {
     }
 
     override fun getFilePath(state: LinterExternalAnnotator.State): String {
-        return state.psiWithDocument.first.virtualFile.toNioPath().toAbsolutePath().normalize().toString()
+        val virtualFile = state.psiWithDocument.first.virtualFile
+        return virtualFile.toNioPathOrNull()?.toAbsolutePath()?.normalize()?.toString() ?: return virtualFile.path
     }
 
     override fun getStdinText(state: LinterExternalAnnotator.State): String {

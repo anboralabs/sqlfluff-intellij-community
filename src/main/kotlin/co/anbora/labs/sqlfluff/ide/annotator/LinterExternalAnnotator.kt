@@ -126,11 +126,11 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
                 statusService.setRunning(false)
             }.join()
         } catch (ex: InterruptedException) {
-            return NO_PROBLEMS_FOUND
+            return scanFailedWithError(LinterException("An error occurred while scanning a file.", ex))
         } catch (ex: CancellationException) {
-            return NO_PROBLEMS_FOUND
+            return scanFailedWithError(LinterException("An error occurred while scanning a file.", ex))
         } catch (ex: CompletionException) {
-            return NO_PROBLEMS_FOUND
+            return scanFailedWithError(LinterException("An error occurred while scanning a file.", ex))
         } catch (ex: LinterException) {
             log.warn("An error occurred while scanning a file.", ex)
             return scanFailedWithError(ex)
