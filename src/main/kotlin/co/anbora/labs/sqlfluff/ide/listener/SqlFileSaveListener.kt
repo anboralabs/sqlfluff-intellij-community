@@ -30,7 +30,7 @@ class SqlFileSaveListener : FileDocumentManagerListener {
             if (!isSqlFileType(configFile, extension)) continue
 
             val psiFile = PsiManager.getInstance(project).findFile(virtualFile) ?: continue
-            DaemonCodeAnalyzer.getInstance(project).restart(psiFile, "saved document")
+            DaemonCodeAnalyzer.getInstance(project).restart(psiFile)
         }
     }
 }
