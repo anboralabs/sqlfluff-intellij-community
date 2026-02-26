@@ -1,5 +1,6 @@
 package co.anbora.labs.sqlfluff.ide.actions
 
+import co.anbora.labs.sqlfluff.ide.SqlfluffBundle
 import co.anbora.labs.sqlfluff.ide.notifications.LinterNotifications
 import co.anbora.labs.sqlfluff.ide.startup.InitConfigFiles
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterExecutionService
@@ -14,7 +15,7 @@ import kotlin.io.path.pathString
 
 class UseDefaultConfig(
     private val project: Project
-): NotificationAction("Default") {
+): NotificationAction(SqlfluffBundle.message("action.use.default.config.text")) {
     override fun actionPerformed(
         e: AnActionEvent,
         notification: Notification
@@ -32,8 +33,8 @@ class UseDefaultConfig(
         notification.expire()
 
         val notification = LinterNotifications.createNotification(
-            "Sqlfluff Linter",
-            "Loaded default configuration",
+            SqlfluffBundle.message("notification.title"),
+            SqlfluffBundle.message("notification.loaded.default.config"),
             NotificationType.INFORMATION,
         )
         LinterNotifications.showNotification(notification, project)

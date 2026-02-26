@@ -1,26 +1,29 @@
 package co.anbora.labs.sqlfluff.ide.annotator
 
 import co.anbora.labs.sqlfluff.ide.lang.psi.PsiFinderFlavor
+import co.anbora.labs.sqlfluff.ide.notifications.LinterErrorNotification
 import co.anbora.labs.sqlfluff.ide.quickFix.QuickFixFlavor
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterExecutionService
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
+import co.anbora.labs.sqlfluff.ide.widget.LinterStatusService
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile
 import co.anbora.labs.sqlfluff.lang.psi.LinterConfigFile.Companion.DEFAULT_DIALECT
 import co.anbora.labs.sqlfluff.lint.LinterConfig
 import co.anbora.labs.sqlfluff.lint.checker.Problem
+import co.anbora.labs.sqlfluff.lint.exception.LinterException
 import co.anbora.labs.sqlfluff.lint.isSqlFileType
+import co.anbora.labs.sqlfluff.lint.issue.SQL_FLUFF
+import co.anbora.labs.sqlfluff.lint.processor.LintExecutorRequest
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
 import com.intellij.psi.PsiFile
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.CancellationException
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
 
 class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, LinterExternalAnnotator.Results>() {
 
@@ -28,6 +31,7 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
         val linter: LinterConfig,
         val psiWithDocument: Pair<PsiFile, Document>,
         val dialect: String,
+        val executeWhenSave: Boolean,
         val config: LinterConfigFile?
     )
 
@@ -66,7 +70,13 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
             return null
         }
 
-        return State(linterType, Pair(file, document), dialect, configFile)
+        return State(
+            linterType,
+            Pair(file, document),
+            dialect,
+            toolchainSettings.executeWhenSave,
+            configFile
+        )
     }
 
     override fun doAnnotate(collectedInfo: State?): Results {
@@ -79,6 +89,7 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
         val project = collectedInfo.psiWithDocument.first.project
 
         val settings = project.service<LinterExecutionService>()
+        val statusService = project.service<LinterStatusService>()
 
         if (!toolchainSettings.toolchain().isValid()) {
             log.debug("Scan failed: sqlfluff not available.")
@@ -92,34 +103,49 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
             return NO_PROBLEMS_FOUND
         }
 
-        val result: AtomicReference<Results> = AtomicReference(NO_PROBLEMS_FOUND)
-        val latch = CountDownLatch(1)
+        val linterType = collectedInfo.linter
+        val executor = linterType.chooseExecutor(project, collectedInfo.executeWhenSave)
 
-        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Running sqlfluff...", false) {
-            override fun run(p0: ProgressIndicator) {
-                val linterType = collectedInfo.linter
-
-                val linterResult = linterType.lint(
+        try {
+            return CompletableFuture.runAsync {
+                statusService.setRunning(true)
+            }.thenApplyAsync {
+                val request = LintExecutorRequest(
                     collectedInfo,
                     linterType.workDirectory(project, settings.configLocation),
-                    settings.configLocation,
+                    linterType.configPath(settings.configLocation),
                     toolchainSettings.toolchain(),
                     PsiFinderFlavor.getApplicableFlavor(),
                     QuickFixFlavor.getApplicableFlavor()
                 )
-                result.set(linterResult)
-
-                latch.countDown()
-            }
-        })
-
-        try {
-            latch.await()
+                executor.lint(request)
+            }.whenCompleteAsync { _, throwable ->
+                if (throwable != null) {
+                    log.warn("sqlfluff lint execution failed", throwable)
+                }
+                statusService.setRunning(false)
+            }.join()
         } catch (ex: InterruptedException) {
-            return NO_PROBLEMS_FOUND
+            return scanFailedWithError(LinterException("An error occurred while scanning a file.", ex))
+        } catch (ex: CancellationException) {
+            return scanFailedWithError(LinterException("An error occurred while scanning a file.", ex))
+        } catch (ex: CompletionException) {
+            return scanFailedWithError(LinterException("An error occurred while scanning a file.", ex))
+        } catch (ex: LinterException) {
+            log.warn("An error occurred while scanning a file.", ex)
+            return scanFailedWithError(ex)
+        } catch (ex: Throwable) {
+            log.warn("An error occurred while scanning a file.", ex)
+            return scanFailedWithError(LinterException("An error occurred while scanning a file.", ex))
         }
+    }
 
-        return result.get()
+    private fun scanFailedWithError(e: LinterException): Results {
+        LinterErrorNotification(e.message.orEmpty())
+            .withTitle("$SQL_FLUFF:")
+            .show()
+
+        return NO_PROBLEMS_FOUND
     }
 
     override fun apply(file: PsiFile, annotationResult: Results?, holder: AnnotationHolder) {
@@ -132,6 +158,8 @@ class LinterExternalAnnotator: ExternalAnnotator<LinterExternalAnnotator.State, 
             problem.createAnnotation(holder)
         }
     }
+
+    override fun getPairedBatchInspectionShortName(): String = "Linter"
 }
 
 val NO_PROBLEMS_FOUND: LinterExternalAnnotator.Results = LinterExternalAnnotator.Results(emptyList())

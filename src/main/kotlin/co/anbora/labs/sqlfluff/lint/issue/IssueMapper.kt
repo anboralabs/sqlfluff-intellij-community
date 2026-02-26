@@ -1,15 +1,16 @@
 package co.anbora.labs.sqlfluff.lint.issue
 
-import java.util.function.Function
+import co.anbora.labs.sqlfluff.lint.api.ScanParams
+import java.util.function.BiFunction
 
-object IssueMapper: Function<FileIssue, List<Issue>> {
-    override fun apply(fileIssue: FileIssue): List<Issue> {
+object IssueMapper: BiFunction<FileIssue, ScanParams, List<Issue>> {
+    override fun apply(fileIssue: FileIssue, params: ScanParams): List<Issue> {
 
         val violations = fileIssue.violations ?: return emptyList()
 
         return violations.map {
             Issue(
-                fileIssue.filepath,
+                params.filePath,
                 it.lineNo,
                 it.linePos,
                 it.lineFilePos,

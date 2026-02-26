@@ -5,9 +5,5 @@ import com.intellij.codeInspection.ex.ExternalAnnotatorBatchInspection
 
 class LinterInspection: LocalInspectionTool(), ExternalAnnotatorBatchInspection {
 
-    companion object {
-        const val INSPECTION_SHORT_NAME = "SqlfluffLinter"
-    }
-
-    override fun getShortName(): String = INSPECTION_SHORT_NAME
+    override fun getShortName(): String = "Linter"
 }

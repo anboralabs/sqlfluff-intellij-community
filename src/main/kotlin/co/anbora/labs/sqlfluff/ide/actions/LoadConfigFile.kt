@@ -1,5 +1,6 @@
 package co.anbora.labs.sqlfluff.ide.actions
 
+import co.anbora.labs.sqlfluff.ide.SqlfluffBundle
 import co.anbora.labs.sqlfluff.ide.notifications.LinterNotifications
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterExecutionService
 import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService
@@ -19,7 +20,7 @@ class LoadConfigFile(
     private val project: Project,
     private val configFile: Path,
     private val linterConfig: LinterConfig = LinterConfig.CUSTOM,
-): NotificationAction("Load") {
+): NotificationAction(SqlfluffBundle.message("action.load.config.text")) {
 
     override fun actionPerformed(
         e: AnActionEvent,
@@ -38,8 +39,8 @@ class LoadConfigFile(
         notification.expire()
 
         val notification = LinterNotifications.createNotification(
-            "Sqlfluff Linter",
-            "Loaded .sqlfluff config file",
+            SqlfluffBundle.message("notification.title"),
+            SqlfluffBundle.message("notification.loaded.config.file"),
             NotificationType.INFORMATION,
         )
         LinterNotifications.showNotification(notification, project)

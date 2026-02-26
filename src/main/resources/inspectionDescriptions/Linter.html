@@ -1,0 +1,52 @@
+<html>
+<body>
+Reports SQL code style issues detected by <b>SQLFluff</b> linter.
+<p>
+    This inspection controls the external annotator that runs <code>sqlfluff lint</code> on your SQL files.
+    When enabled, SQLFluff analyzes your code in real-time and highlights violations directly in the editor.
+    Disabling this inspection turns off the annotator, stopping SQLFluff from running and hiding all reported errors.
+</p>
+<p>
+    Below are some common examples of errors reported by SQLFluff:
+</p>
+<pre><code>
+-- L010: Keywords must be consistently upper case.
+select id, name from users;
+-- Fix:
+SELECT id, name FROM users;
+</code></pre>
+<pre><code>
+-- L001: Unnecessary trailing whitespace.
+SELECT id, name FROM users;   
+-- Fix: remove trailing spaces at end of line.
+</code></pre>
+<pre><code>
+-- L003: Expected 4 spaces indentation, found 2.
+SELECT
+  id,
+  name
+FROM users;
+-- Fix:
+SELECT
+    id,
+    name
+FROM users;
+</code></pre>
+<pre><code>
+-- L009: Files must end with a single trailing newline.
+SELECT id FROM users;
+-- Fix: ensure file ends with exactly one newline character.
+</code></pre>
+<pre><code>
+-- L014: Unquoted identifiers must be consistently lower case.
+SELECT Id, Name FROM Users;
+-- Fix:
+SELECT id, name FROM users;
+</code></pre>
+<!-- tooltip end -->
+<p>
+    Configure the SQLFluff executable path and linter rules in
+    <a href="settings://co.anbora.labs.sqlfluff.ide.settings.LinterProjectSettingsConfigurable">SQLFluff Settings</a>.
+</p>
+</body>
+</html>
