@@ -19,16 +19,14 @@ class LinterProjectSettingsConfigurable(private val project: Project) : Configur
     private lateinit var rootPanel: JPanel
 
     override fun createComponent(): JComponent {
-        rootPanel = panel {
-            for (provider in providers) {
-                row {
-                    cell(provider.createPanel(project))
-                        .align(AlignX.FILL)
-                }
-            }
-        }.withBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0))
-
-        return rootPanel
+        val panel = JPanel().apply {
+            layout = BoxLayout(this, BoxLayout.Y_AXIS)
+        }
+        for (settingsPanel in providers) {
+            panel.add(settingsPanel.createPanel(project))
+        }
+        rootPanel = panel
+        return panel
     }
 
     override fun getPreferredFocusedComponent(): JComponent = rootPanel
