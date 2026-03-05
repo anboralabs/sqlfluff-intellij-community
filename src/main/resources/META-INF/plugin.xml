@@ -36,7 +36,7 @@
                 groupId="tools"
                 key="configurable.display-name"
                 id="preference.SqlFluffLinterConfigurable"
-                instance="co.anbora.labs.sqlfluff.ide.settings.LinterProjectSettingsConfigurable" />
+                provider="co.anbora.labs.sqlfluff.ide.settings.LinterSettingsConfigurableProvider" />
         <externalAnnotator language="" implementationClass="co.anbora.labs.sqlfluff.ide.annotator.LinterExternalAnnotator"/>
         <localInspection implementationClass="co.anbora.labs.sqlfluff.ide.inspection.LinterInspection"
                          language=""
@@ -71,6 +71,7 @@
         <toolchain implementation="co.anbora.labs.sqlfluff.ide.toolchain.flavor.LinterWinPathToolchainFlavor"/>
         <toolchain implementation="co.anbora.labs.sqlfluff.ide.toolchain.flavor.LinterUnixPathToolchainFlavor"/>
         <toolchain implementation="co.anbora.labs.sqlfluff.ide.toolchain.flavor.LinterSysPathToolchainFlavor"/>
+        <settingsPanel implementation="co.anbora.labs.sqlfluff.ide.settings.LinterDefaultSettingsPanel"/>
     </extensions>
 
     <extensionPoints>
@@ -84,6 +85,8 @@
                         dynamic="true" name="quickFixer"/>
         <extensionPoint interface="co.anbora.labs.sqlfluff.ide.checker.CheckerFlavor"
                         dynamic="true" name="checker"/>
+        <extensionPoint interface="co.anbora.labs.sqlfluff.ide.settings.LinterSettingsPanel"
+                        dynamic="true" name="settingsPanel"/>
     </extensionPoints>
 
     <actions>

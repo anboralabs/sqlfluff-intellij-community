@@ -1,82 +1,55 @@
 package co.anbora.labs.sqlfluff.ide.settings
 
-import co.anbora.labs.sqlfluff.ide.toolchain.LinterExecutionService
-import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchain
-import co.anbora.labs.sqlfluff.ide.toolchain.LinterToolchainService.Companion.toolchainSettings
-import co.anbora.labs.sqlfluff.lint.LinterConfig
-import com.intellij.openapi.components.service
 import com.intellij.openapi.options.Configurable
-import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogPanel
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.panel
+import javax.swing.BorderFactory
+import javax.swing.BoxLayout
 import javax.swing.JComponent
+import javax.swing.JPanel
 
 class LinterProjectSettingsConfigurable(private val project: Project) : Configurable {
 
-    private val mainPanel: DialogPanel
-    private val model = LinterProjectSettingsForm.Model(
-        homeLocation = "",
-        linter = LinterConfig.GLOBAL,
-        configPath = "",
-        executeWhenSave = true
-    )
-    private val settingsForm = LinterProjectSettingsForm(project, model)
-
-    val settings = project.service<LinterExecutionService>()
-
-    init {
-        mainPanel = settingsForm.createComponent()
+    private val providers: List<LinterSettingsPanel> by lazy {
+        LinterSettingsPanel.EP_NAME.extensionList.sortedBy { it.getOrder() }
     }
 
-    override fun createComponent(): JComponent = mainPanel
+    private lateinit var rootPanel: JPanel
 
-    override fun getPreferredFocusedComponent(): JComponent = mainPanel
+    override fun createComponent(): JComponent {
+        rootPanel = panel {
+            for (provider in providers) {
+                row {
+                    cell(provider.createPanel(project))
+                        .align(AlignX.FILL)
+                }
+            }
+        }.withBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0))
+
+        return rootPanel
+    }
+
+    override fun getPreferredFocusedComponent(): JComponent = rootPanel
 
     override fun isModified(): Boolean {
-        mainPanel.apply()
-
-        return model.homeLocation != toolchainSettings.toolchainLocation
-                || model.executeWhenSave != settings.executeWhenSave
-                || model.linter != settings.linter
-                || model.configPath != settings.configLocation
+        return providers.any { it.isModified() }
     }
 
     override fun apply() {
-        mainPanel.apply()
-
-        validateSettings()
-
-        toolchainSettings.setToolchain(LinterToolchain.fromPath(model.homeLocation))
-        settings.setLinterSettingOption(
-            LinterExecutionService.LinterConfigSettings(
-                model.linter,
-                model.configPath,
-                model.executeWhenSave
-            )
-        )
-    }
-
-    private fun validateSettings() {
-        val issues = mainPanel.validateAll()
-        if (issues.isNotEmpty()) {
-            throw ConfigurationException(issues.first().message)
+        for (panel in providers) {
+            panel.apply()
         }
     }
 
     override fun reset() {
-        with(model) {
-            homeLocation = toolchainSettings.toolchainLocation
-            linter = settings.linter
-            configPath = settings.configLocation
-            executeWhenSave = settings.executeWhenSave
+        for (panel in providers) {
+            panel.reset()
         }
-
-        settingsForm.reset()
-        mainPanel.reset()
     }
 
-    override fun getDisplayName(): String = "Sqlfluff Linter"
+    override fun getDisplayName(): String = "SQLFluff Linter"
 
     companion object {
         @JvmStatic
