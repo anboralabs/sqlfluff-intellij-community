@@ -43,7 +43,7 @@ dependencies {
         pluginVerifier()
         testFramework(TestFrameworkType.Platform)
     }
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.21.1")
     testImplementation("junit:junit:4.13.2")
 }
 
