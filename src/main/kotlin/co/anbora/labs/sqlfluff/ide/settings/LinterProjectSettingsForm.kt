@@ -17,11 +17,13 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Condition
+import com.intellij.ui.TitledSeparator
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
 import java.nio.file.Path
 import java.util.function.Consumer
 import javax.swing.BorderFactory
+import javax.swing.JSeparator
 import kotlin.io.path.absolutePathString
 
 class LinterProjectSettingsForm(private val project: Project, private val model: Model) {
@@ -148,11 +150,13 @@ class LinterProjectSettingsForm(private val project: Project, private val model:
                 cell(globalConfigView.getComponent())
                     .align(AlignX.FILL)
             }
-            group(".sqlfluff path:") {
-                row {
-                    cell(linterConfigPathField)
-                        .align(AlignX.FILL)
-                }
+            row {
+                cell(TitledSeparator(".sqlfluff path:"))
+                    .align(AlignX.FILL)
+            }
+            row {
+                cell(linterConfigPathField)
+                    .align(AlignX.FILL)
             }
             row {
                 cell(linterOptions)
